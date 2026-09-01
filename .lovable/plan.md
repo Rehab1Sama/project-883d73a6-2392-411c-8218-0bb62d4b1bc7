@@ -20,7 +20,7 @@
 
 - إضافة عمود `user_id uuid references auth.users(id)` إلى `students` مع فهرس فريد.
 - سياسة RLS للقراءة الذاتية على `students`: `auth.uid() = user_id`.
-- سياسات قراءة ذاتية على `progress_records` و`attendance` و`circle_students` مقيدة بصف الطالبة المرتبطة بالمستخدمة.
+- سياسات قراءة ذاتية على `progress_records` و`attendance` و`circle_students` و`circles` و`tracks` وأسماء المعلمة/المشرفة (`profiles` عبر `user_roles`) مقيدة بصف الطالبة المرتبطة بالمستخدمة.
 - منح الصلاحيات المطلوبة (`GRANT SELECT ... TO authenticated`).
 - لا يُمسّ أي سياسة قائمة للموظفات.
 
