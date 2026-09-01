@@ -430,7 +430,7 @@ function StudentsPage() {
                   <TableCell>
                     {enroll[s.id] ? (
                       <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                        {circleMap.get(enroll[s.id]) ?? "—"}
+                        {circleMap.get(enroll[s.id]!) ?? "—"}
                       </span>
                     ) : (
                       "—"
