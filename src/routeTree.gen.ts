@@ -20,6 +20,7 @@ import { Route as RolesRouteImport } from './routes/roles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as MSlugRouteImport } from './routes/m.$slug'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as VSlugRouteImport } from './routes/v.$slug'
 import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform/index'
 import { Route as AuthenticatedPlatformBillingRouteImport } from './routes/_authenticated/platform/billing'
@@ -93,6 +94,11 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const MSlugRoute = MSlugRouteImport.update({
   id: '/m/$slug',
   path: '/m/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VSlugRoute = VSlugRouteImport.update({
@@ -226,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/v/$slug': typeof VSlugRoute
   '/platform/billing': typeof AuthenticatedPlatformBillingRoute
   '/platform/compare': typeof AuthenticatedPlatformCompareRoute
@@ -258,6 +265,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/v/$slug': typeof VSlugRoute
   '/platform/billing': typeof AuthenticatedPlatformBillingRoute
   '/platform/compare': typeof AuthenticatedPlatformCompareRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
   '/m/$slug': typeof MSlugRoute
+  '/s/$slug': typeof SSlugRoute
   '/v/$slug': typeof VSlugRoute
   '/_authenticated/platform/billing': typeof AuthenticatedPlatformBillingRoute
   '/_authenticated/platform/compare': typeof AuthenticatedPlatformCompareRoute
@@ -326,6 +335,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/invite/$token'
     | '/m/$slug'
+    | '/s/$slug'
     | '/v/$slug'
     | '/platform/billing'
     | '/platform/compare'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/invite/$token'
     | '/m/$slug'
+    | '/s/$slug'
     | '/v/$slug'
     | '/platform/billing'
     | '/platform/compare'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/invite/$token'
     | '/m/$slug'
+    | '/s/$slug'
     | '/v/$slug'
     | '/_authenticated/platform/billing'
     | '/_authenticated/platform/compare'
@@ -424,6 +436,7 @@ export interface RootRouteChildren {
   RolesRoute: typeof RolesRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
+  SSlugRoute: typeof SSlugRoute
   VSlugRoute: typeof VSlugRoute
   ApiPublicWebhooksPaymentsRoute: typeof ApiPublicWebhooksPaymentsRoute
 }
@@ -505,6 +518,13 @@ declare module '@tanstack/react-router' {
       path: '/m/$slug'
       fullPath: '/m/$slug'
       preLoaderRoute: typeof MSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/v/$slug': {
@@ -722,6 +742,7 @@ const rootRouteChildren: RootRouteChildren = {
   RolesRoute: RolesRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,
+  SSlugRoute: SSlugRoute,
   VSlugRoute: VSlugRoute,
   ApiPublicWebhooksPaymentsRoute: ApiPublicWebhooksPaymentsRoute,
 }
