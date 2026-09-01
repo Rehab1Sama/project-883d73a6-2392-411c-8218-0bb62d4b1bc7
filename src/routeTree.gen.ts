@@ -10,33 +10,409 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CompareRouteImport } from './routes/compare'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as FeaturesRouteImport } from './routes/features'
+import { Route as PlansRouteImport } from './routes/plans'
+import { Route as RolesRouteImport } from './routes/roles'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as InviteTokenRouteImport } from './routes/invite.$token'
+import { Route as MSlugRouteImport } from './routes/m.$slug'
+import { Route as VSlugRouteImport } from './routes/v.$slug'
+import { Route as AuthenticatedPlatformIndexRouteImport } from './routes/_authenticated/platform/index'
+import { Route as AuthenticatedPlatformBillingRouteImport } from './routes/_authenticated/platform/billing'
+import { Route as AuthenticatedPlatformCompareRouteImport } from './routes/_authenticated/platform/compare'
+import { Route as AuthenticatedPlatformPlansRouteImport } from './routes/_authenticated/platform/plans'
+import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
+import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
+import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
+import { Route as AuthenticatedAppSlugCirclesRouteImport } from './routes/_authenticated/app/$slug/circles'
+import { Route as AuthenticatedAppSlugProgressRouteImport } from './routes/_authenticated/app/$slug/progress'
+import { Route as AuthenticatedAppSlugRecordsRouteImport } from './routes/_authenticated/app/$slug/records'
+import { Route as AuthenticatedAppSlugReportsRouteImport } from './routes/_authenticated/app/$slug/reports'
+import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
+import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
+import { Route as AuthenticatedAppSlugSubscriptionRouteImport } from './routes/_authenticated/app/$slug/subscription'
+import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
+import { Route as AuthenticatedAppSlugVolunteersRouteImport } from './routes/_authenticated/app/$slug/volunteers'
+import { Route as ApiPublicWebhooksPaymentsRouteImport } from './routes/api/public/webhooks/payments'
+import { Route as AuthenticatedAppSlugStudentsStudentIdRouteImport } from './routes/_authenticated/app/$slug/students.$studentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeaturesRoute = FeaturesRouteImport.update({
+  id: '/features',
+  path: '/features',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RolesRoute = RolesRouteImport.update({
+  id: '/roles',
+  path: '/roles',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const InviteTokenRoute = InviteTokenRouteImport.update({
+  id: '/invite/$token',
+  path: '/invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MSlugRoute = MSlugRouteImport.update({
+  id: '/m/$slug',
+  path: '/m/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VSlugRoute = VSlugRouteImport.update({
+  id: '/v/$slug',
+  path: '/v/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPlatformIndexRoute =
+  AuthenticatedPlatformIndexRouteImport.update({
+    id: '/platform/',
+    path: '/platform/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformBillingRoute =
+  AuthenticatedPlatformBillingRouteImport.update({
+    id: '/platform/billing',
+    path: '/platform/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformCompareRoute =
+  AuthenticatedPlatformCompareRouteImport.update({
+    id: '/platform/compare',
+    path: '/platform/compare',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformPlansRoute =
+  AuthenticatedPlatformPlansRouteImport.update({
+    id: '/platform/plans',
+    path: '/platform/plans',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformRequestsRoute =
+  AuthenticatedPlatformRequestsRouteImport.update({
+    id: '/platform/requests',
+    path: '/platform/requests',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPlatformTenantsRoute =
+  AuthenticatedPlatformTenantsRouteImport.update({
+    id: '/platform/tenants',
+    path: '/platform/tenants',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugIndexRoute =
+  AuthenticatedAppSlugIndexRouteImport.update({
+    id: '/app/$slug/',
+    path: '/app/$slug/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugCirclesRoute =
+  AuthenticatedAppSlugCirclesRouteImport.update({
+    id: '/app/$slug/circles',
+    path: '/app/$slug/circles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugProgressRoute =
+  AuthenticatedAppSlugProgressRouteImport.update({
+    id: '/app/$slug/progress',
+    path: '/app/$slug/progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugRecordsRoute =
+  AuthenticatedAppSlugRecordsRouteImport.update({
+    id: '/app/$slug/records',
+    path: '/app/$slug/records',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugReportsRoute =
+  AuthenticatedAppSlugReportsRouteImport.update({
+    id: '/app/$slug/reports',
+    path: '/app/$slug/reports',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugSettingsRoute =
+  AuthenticatedAppSlugSettingsRouteImport.update({
+    id: '/app/$slug/settings',
+    path: '/app/$slug/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugStudentsRoute =
+  AuthenticatedAppSlugStudentsRouteImport.update({
+    id: '/app/$slug/students',
+    path: '/app/$slug/students',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugSubscriptionRoute =
+  AuthenticatedAppSlugSubscriptionRouteImport.update({
+    id: '/app/$slug/subscription',
+    path: '/app/$slug/subscription',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugTracksRoute =
+  AuthenticatedAppSlugTracksRouteImport.update({
+    id: '/app/$slug/tracks',
+    path: '/app/$slug/tracks',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugVolunteersRoute =
+  AuthenticatedAppSlugVolunteersRouteImport.update({
+    id: '/app/$slug/volunteers',
+    path: '/app/$slug/volunteers',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicWebhooksPaymentsRoute =
+  ApiPublicWebhooksPaymentsRouteImport.update({
+    id: '/api/public/webhooks/payments',
+    path: '/api/public/webhooks/payments',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAppSlugStudentsStudentIdRoute =
+  AuthenticatedAppSlugStudentsStudentIdRouteImport.update({
+    id: '/$studentId',
+    path: '/$studentId',
+    getParentRoute: () => AuthenticatedAppSlugStudentsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
+  '/features': typeof FeaturesRoute
+  '/plans': typeof PlansRoute
+  '/roles': typeof RolesRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/m/$slug': typeof MSlugRoute
+  '/v/$slug': typeof VSlugRoute
+  '/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/platform/compare': typeof AuthenticatedPlatformCompareRoute
+  '/platform/plans': typeof AuthenticatedPlatformPlansRoute
+  '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
+  '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
+  '/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
+  '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
+  '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
+  '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
+  '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
+  '/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
+  '/app/$slug/students/$studentId': typeof AuthenticatedAppSlugStudentsStudentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
+  '/features': typeof FeaturesRoute
+  '/plans': typeof PlansRoute
+  '/roles': typeof RolesRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/m/$slug': typeof MSlugRoute
+  '/v/$slug': typeof VSlugRoute
+  '/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/platform/compare': typeof AuthenticatedPlatformCompareRoute
+  '/platform/plans': typeof AuthenticatedPlatformPlansRoute
+  '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
+  '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/platform': typeof AuthenticatedPlatformIndexRoute
+  '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
+  '/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
+  '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
+  '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
+  '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
+  '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
+  '/app/$slug': typeof AuthenticatedAppSlugIndexRoute
+  '/app/$slug/students/$studentId': typeof AuthenticatedAppSlugStudentsStudentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/compare': typeof CompareRoute
+  '/contact': typeof ContactRoute
+  '/features': typeof FeaturesRoute
+  '/plans': typeof PlansRoute
+  '/roles': typeof RolesRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/invite/$token': typeof InviteTokenRoute
+  '/m/$slug': typeof MSlugRoute
+  '/v/$slug': typeof VSlugRoute
+  '/_authenticated/platform/billing': typeof AuthenticatedPlatformBillingRoute
+  '/_authenticated/platform/compare': typeof AuthenticatedPlatformCompareRoute
+  '/_authenticated/platform/plans': typeof AuthenticatedPlatformPlansRoute
+  '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
+  '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/_authenticated/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/_authenticated/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
+  '/_authenticated/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
+  '/_authenticated/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
+  '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
+  '/_authenticated/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
+  '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
+  '/_authenticated/app/$slug/volunteers': typeof AuthenticatedAppSlugVolunteersRoute
+  '/api/public/webhooks/payments': typeof ApiPublicWebhooksPaymentsRoute
+  '/_authenticated/app/$slug/': typeof AuthenticatedAppSlugIndexRoute
+  '/_authenticated/app/$slug/students/$studentId': typeof AuthenticatedAppSlugStudentsStudentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/contact'
+    | '/features'
+    | '/plans'
+    | '/roles'
+    | '/dashboard'
+    | '/invite/$token'
+    | '/m/$slug'
+    | '/v/$slug'
+    | '/platform/billing'
+    | '/platform/compare'
+    | '/platform/plans'
+    | '/platform/requests'
+    | '/platform/tenants'
+    | '/platform/'
+    | '/app/$slug/circles'
+    | '/app/$slug/progress'
+    | '/app/$slug/records'
+    | '/app/$slug/reports'
+    | '/app/$slug/settings'
+    | '/app/$slug/students'
+    | '/app/$slug/subscription'
+    | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
+    | '/app/$slug/'
+    | '/app/$slug/students/$studentId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/compare'
+    | '/contact'
+    | '/features'
+    | '/plans'
+    | '/roles'
+    | '/dashboard'
+    | '/invite/$token'
+    | '/m/$slug'
+    | '/v/$slug'
+    | '/platform/billing'
+    | '/platform/compare'
+    | '/platform/plans'
+    | '/platform/requests'
+    | '/platform/tenants'
+    | '/platform'
+    | '/app/$slug/circles'
+    | '/app/$slug/progress'
+    | '/app/$slug/records'
+    | '/app/$slug/reports'
+    | '/app/$slug/settings'
+    | '/app/$slug/students'
+    | '/app/$slug/subscription'
+    | '/app/$slug/tracks'
+    | '/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
+    | '/app/$slug'
+    | '/app/$slug/students/$studentId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/compare'
+    | '/contact'
+    | '/features'
+    | '/plans'
+    | '/roles'
+    | '/_authenticated/dashboard'
+    | '/invite/$token'
+    | '/m/$slug'
+    | '/v/$slug'
+    | '/_authenticated/platform/billing'
+    | '/_authenticated/platform/compare'
+    | '/_authenticated/platform/plans'
+    | '/_authenticated/platform/requests'
+    | '/_authenticated/platform/tenants'
+    | '/_authenticated/platform/'
+    | '/_authenticated/app/$slug/circles'
+    | '/_authenticated/app/$slug/progress'
+    | '/_authenticated/app/$slug/records'
+    | '/_authenticated/app/$slug/reports'
+    | '/_authenticated/app/$slug/settings'
+    | '/_authenticated/app/$slug/students'
+    | '/_authenticated/app/$slug/subscription'
+    | '/_authenticated/app/$slug/tracks'
+    | '/_authenticated/app/$slug/volunteers'
+    | '/api/public/webhooks/payments'
+    | '/_authenticated/app/$slug/'
+    | '/_authenticated/app/$slug/students/$studentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  CompareRoute: typeof CompareRoute
+  ContactRoute: typeof ContactRoute
+  FeaturesRoute: typeof FeaturesRoute
+  PlansRoute: typeof PlansRoute
+  RolesRoute: typeof RolesRoute
+  InviteTokenRoute: typeof InviteTokenRoute
+  MSlugRoute: typeof MSlugRoute
+  VSlugRoute: typeof VSlugRoute
+  ApiPublicWebhooksPaymentsRoute: typeof ApiPublicWebhooksPaymentsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +424,284 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/features': {
+      id: '/features'
+      path: '/features'
+      fullPath: '/features'
+      preLoaderRoute: typeof FeaturesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roles': {
+      id: '/roles'
+      path: '/roles'
+      fullPath: '/roles'
+      preLoaderRoute: typeof RolesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/invite/$token': {
+      id: '/invite/$token'
+      path: '/invite/$token'
+      fullPath: '/invite/$token'
+      preLoaderRoute: typeof InviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/m/$slug': {
+      id: '/m/$slug'
+      path: '/m/$slug'
+      fullPath: '/m/$slug'
+      preLoaderRoute: typeof MSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/v/$slug': {
+      id: '/v/$slug'
+      path: '/v/$slug'
+      fullPath: '/v/$slug'
+      preLoaderRoute: typeof VSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/platform/': {
+      id: '/_authenticated/platform/'
+      path: '/platform'
+      fullPath: '/platform/'
+      preLoaderRoute: typeof AuthenticatedPlatformIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/billing': {
+      id: '/_authenticated/platform/billing'
+      path: '/platform/billing'
+      fullPath: '/platform/billing'
+      preLoaderRoute: typeof AuthenticatedPlatformBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/compare': {
+      id: '/_authenticated/platform/compare'
+      path: '/platform/compare'
+      fullPath: '/platform/compare'
+      preLoaderRoute: typeof AuthenticatedPlatformCompareRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/plans': {
+      id: '/_authenticated/platform/plans'
+      path: '/platform/plans'
+      fullPath: '/platform/plans'
+      preLoaderRoute: typeof AuthenticatedPlatformPlansRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/requests': {
+      id: '/_authenticated/platform/requests'
+      path: '/platform/requests'
+      fullPath: '/platform/requests'
+      preLoaderRoute: typeof AuthenticatedPlatformRequestsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform/tenants': {
+      id: '/_authenticated/platform/tenants'
+      path: '/platform/tenants'
+      fullPath: '/platform/tenants'
+      preLoaderRoute: typeof AuthenticatedPlatformTenantsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/': {
+      id: '/_authenticated/app/$slug/'
+      path: '/app/$slug'
+      fullPath: '/app/$slug/'
+      preLoaderRoute: typeof AuthenticatedAppSlugIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/circles': {
+      id: '/_authenticated/app/$slug/circles'
+      path: '/app/$slug/circles'
+      fullPath: '/app/$slug/circles'
+      preLoaderRoute: typeof AuthenticatedAppSlugCirclesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/progress': {
+      id: '/_authenticated/app/$slug/progress'
+      path: '/app/$slug/progress'
+      fullPath: '/app/$slug/progress'
+      preLoaderRoute: typeof AuthenticatedAppSlugProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/records': {
+      id: '/_authenticated/app/$slug/records'
+      path: '/app/$slug/records'
+      fullPath: '/app/$slug/records'
+      preLoaderRoute: typeof AuthenticatedAppSlugRecordsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/reports': {
+      id: '/_authenticated/app/$slug/reports'
+      path: '/app/$slug/reports'
+      fullPath: '/app/$slug/reports'
+      preLoaderRoute: typeof AuthenticatedAppSlugReportsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/settings': {
+      id: '/_authenticated/app/$slug/settings'
+      path: '/app/$slug/settings'
+      fullPath: '/app/$slug/settings'
+      preLoaderRoute: typeof AuthenticatedAppSlugSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/students': {
+      id: '/_authenticated/app/$slug/students'
+      path: '/app/$slug/students'
+      fullPath: '/app/$slug/students'
+      preLoaderRoute: typeof AuthenticatedAppSlugStudentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/subscription': {
+      id: '/_authenticated/app/$slug/subscription'
+      path: '/app/$slug/subscription'
+      fullPath: '/app/$slug/subscription'
+      preLoaderRoute: typeof AuthenticatedAppSlugSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/tracks': {
+      id: '/_authenticated/app/$slug/tracks'
+      path: '/app/$slug/tracks'
+      fullPath: '/app/$slug/tracks'
+      preLoaderRoute: typeof AuthenticatedAppSlugTracksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/volunteers': {
+      id: '/_authenticated/app/$slug/volunteers'
+      path: '/app/$slug/volunteers'
+      fullPath: '/app/$slug/volunteers'
+      preLoaderRoute: typeof AuthenticatedAppSlugVolunteersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/webhooks/payments': {
+      id: '/api/public/webhooks/payments'
+      path: '/api/public/webhooks/payments'
+      fullPath: '/api/public/webhooks/payments'
+      preLoaderRoute: typeof ApiPublicWebhooksPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/app/$slug/students/$studentId': {
+      id: '/_authenticated/app/$slug/students/$studentId'
+      path: '/$studentId'
+      fullPath: '/app/$slug/students/$studentId'
+      preLoaderRoute: typeof AuthenticatedAppSlugStudentsStudentIdRouteImport
+      parentRoute: typeof AuthenticatedAppSlugStudentsRoute
+    }
   }
 }
 
+interface AuthenticatedAppSlugStudentsRouteChildren {
+  AuthenticatedAppSlugStudentsStudentIdRoute: typeof AuthenticatedAppSlugStudentsStudentIdRoute
+}
+
+const AuthenticatedAppSlugStudentsRouteChildren: AuthenticatedAppSlugStudentsRouteChildren =
+  {
+    AuthenticatedAppSlugStudentsStudentIdRoute:
+      AuthenticatedAppSlugStudentsStudentIdRoute,
+  }
+
+const AuthenticatedAppSlugStudentsRouteWithChildren =
+  AuthenticatedAppSlugStudentsRoute._addFileChildren(
+    AuthenticatedAppSlugStudentsRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedPlatformBillingRoute: typeof AuthenticatedPlatformBillingRoute
+  AuthenticatedPlatformCompareRoute: typeof AuthenticatedPlatformCompareRoute
+  AuthenticatedPlatformPlansRoute: typeof AuthenticatedPlatformPlansRoute
+  AuthenticatedPlatformRequestsRoute: typeof AuthenticatedPlatformRequestsRoute
+  AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
+  AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+  AuthenticatedAppSlugCirclesRoute: typeof AuthenticatedAppSlugCirclesRoute
+  AuthenticatedAppSlugProgressRoute: typeof AuthenticatedAppSlugProgressRoute
+  AuthenticatedAppSlugRecordsRoute: typeof AuthenticatedAppSlugRecordsRoute
+  AuthenticatedAppSlugReportsRoute: typeof AuthenticatedAppSlugReportsRoute
+  AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
+  AuthenticatedAppSlugStudentsRoute: typeof AuthenticatedAppSlugStudentsRouteWithChildren
+  AuthenticatedAppSlugSubscriptionRoute: typeof AuthenticatedAppSlugSubscriptionRoute
+  AuthenticatedAppSlugTracksRoute: typeof AuthenticatedAppSlugTracksRoute
+  AuthenticatedAppSlugVolunteersRoute: typeof AuthenticatedAppSlugVolunteersRoute
+  AuthenticatedAppSlugIndexRoute: typeof AuthenticatedAppSlugIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedPlatformBillingRoute: AuthenticatedPlatformBillingRoute,
+  AuthenticatedPlatformCompareRoute: AuthenticatedPlatformCompareRoute,
+  AuthenticatedPlatformPlansRoute: AuthenticatedPlatformPlansRoute,
+  AuthenticatedPlatformRequestsRoute: AuthenticatedPlatformRequestsRoute,
+  AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
+  AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+  AuthenticatedAppSlugCirclesRoute: AuthenticatedAppSlugCirclesRoute,
+  AuthenticatedAppSlugProgressRoute: AuthenticatedAppSlugProgressRoute,
+  AuthenticatedAppSlugRecordsRoute: AuthenticatedAppSlugRecordsRoute,
+  AuthenticatedAppSlugReportsRoute: AuthenticatedAppSlugReportsRoute,
+  AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
+  AuthenticatedAppSlugStudentsRoute:
+    AuthenticatedAppSlugStudentsRouteWithChildren,
+  AuthenticatedAppSlugSubscriptionRoute: AuthenticatedAppSlugSubscriptionRoute,
+  AuthenticatedAppSlugTracksRoute: AuthenticatedAppSlugTracksRoute,
+  AuthenticatedAppSlugVolunteersRoute: AuthenticatedAppSlugVolunteersRoute,
+  AuthenticatedAppSlugIndexRoute: AuthenticatedAppSlugIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  CompareRoute: CompareRoute,
+  ContactRoute: ContactRoute,
+  FeaturesRoute: FeaturesRoute,
+  PlansRoute: PlansRoute,
+  RolesRoute: RolesRoute,
+  InviteTokenRoute: InviteTokenRoute,
+  MSlugRoute: MSlugRoute,
+  VSlugRoute: VSlugRoute,
+  ApiPublicWebhooksPaymentsRoute: ApiPublicWebhooksPaymentsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
