@@ -27,6 +27,7 @@ import { Route as AuthenticatedPlatformCompareRouteImport } from './routes/_auth
 import { Route as AuthenticatedPlatformPlansRouteImport } from './routes/_authenticated/platform/plans'
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
 import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
+import { Route as AuthenticatedStudentSlugRouteImport } from './routes/_authenticated/student/$slug'
 import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
 import { Route as AuthenticatedAppSlugCirclesRouteImport } from './routes/_authenticated/app/$slug/circles'
 import { Route as AuthenticatedAppSlugProgressRouteImport } from './routes/_authenticated/app/$slug/progress'
@@ -135,6 +136,12 @@ const AuthenticatedPlatformTenantsRoute =
     path: '/platform/tenants',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStudentSlugRoute =
+  AuthenticatedStudentSlugRouteImport.update({
+    id: '/student/$slug',
+    path: '/student/$slug',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAppSlugIndexRoute =
   AuthenticatedAppSlugIndexRouteImport.update({
     id: '/app/$slug/',
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
   '/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
   '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
@@ -256,6 +264,7 @@ export interface FileRoutesByTo {
   '/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
   '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
@@ -289,6 +298,7 @@ export interface FileRoutesById {
   '/_authenticated/platform/plans': typeof AuthenticatedPlatformPlansRoute
   '/_authenticated/platform/requests': typeof AuthenticatedPlatformRequestsRoute
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
+  '/_authenticated/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
   '/_authenticated/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
   '/_authenticated/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
@@ -322,6 +332,7 @@ export interface FileRouteTypes {
     | '/platform/plans'
     | '/platform/requests'
     | '/platform/tenants'
+    | '/student/$slug'
     | '/platform/'
     | '/app/$slug/circles'
     | '/app/$slug/progress'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/platform/plans'
     | '/platform/requests'
     | '/platform/tenants'
+    | '/student/$slug'
     | '/platform'
     | '/app/$slug/circles'
     | '/app/$slug/progress'
@@ -385,6 +397,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/plans'
     | '/_authenticated/platform/requests'
     | '/_authenticated/platform/tenants'
+    | '/_authenticated/student/$slug'
     | '/_authenticated/platform/'
     | '/_authenticated/app/$slug/circles'
     | '/_authenticated/app/$slug/progress'
@@ -543,6 +556,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformTenantsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/student/$slug': {
+      id: '/_authenticated/student/$slug'
+      path: '/student/$slug'
+      fullPath: '/student/$slug'
+      preLoaderRoute: typeof AuthenticatedStudentSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/$slug/': {
       id: '/_authenticated/app/$slug/'
       path: '/app/$slug'
@@ -652,6 +672,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformPlansRoute: typeof AuthenticatedPlatformPlansRoute
   AuthenticatedPlatformRequestsRoute: typeof AuthenticatedPlatformRequestsRoute
   AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
+  AuthenticatedStudentSlugRoute: typeof AuthenticatedStudentSlugRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
   AuthenticatedAppSlugCirclesRoute: typeof AuthenticatedAppSlugCirclesRoute
   AuthenticatedAppSlugProgressRoute: typeof AuthenticatedAppSlugProgressRoute
@@ -672,6 +693,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformPlansRoute: AuthenticatedPlatformPlansRoute,
   AuthenticatedPlatformRequestsRoute: AuthenticatedPlatformRequestsRoute,
   AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
+  AuthenticatedStudentSlugRoute: AuthenticatedStudentSlugRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
   AuthenticatedAppSlugCirclesRoute: AuthenticatedAppSlugCirclesRoute,
   AuthenticatedAppSlugProgressRoute: AuthenticatedAppSlugProgressRoute,

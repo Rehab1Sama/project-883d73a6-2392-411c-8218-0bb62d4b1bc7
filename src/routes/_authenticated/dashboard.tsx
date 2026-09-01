@@ -33,6 +33,9 @@ function DashboardRouter() {
     },
   });
 
+  /** الطالبة لا تملك أي دور إداري داخل المقرأة */
+  const isStudentOnly = roles.length > 0 && roles.every((r) => r.role === "student");
+
   useEffect(() => {
     if (loading) return;
     if (isPlatformOwner) {
@@ -40,9 +43,14 @@ function DashboardRouter() {
       return;
     }
     if (tenants && tenants.length === 1) {
-      navigate({ to: "/app/$slug", params: { slug: tenants[0]!.slug }, replace: true });
+      const slug = tenants[0]!.slug;
+      navigate(
+        isStudentOnly
+          ? { to: "/student/$slug", params: { slug }, replace: true }
+          : { to: "/app/$slug", params: { slug }, replace: true },
+      );
     }
-  }, [loading, isPlatformOwner, tenants, navigate]);
+  }, [loading, isPlatformOwner, isStudentOnly, tenants, navigate]);
 
   if (loading || isLoading) return <LoadingBlock />;
 
