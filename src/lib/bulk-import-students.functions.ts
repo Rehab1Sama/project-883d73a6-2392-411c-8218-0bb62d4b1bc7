@@ -46,6 +46,7 @@ export type BulkImportStudentRowResult = {
  * يُنشَأ حساب دخول للطالبة ويُربط بصفها، ويُرسل البريد وكلمة السر المؤقتة
  * في نتيجة الاستيراد. إذا فُقِد البريد يُستورد السجل فقط وتُبيَّن رسالة
  * بأن الحساب لم يُنشأ لغياب البريد.
+ */
 export const bulkImportStudents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => importSchema.parse(input))
@@ -55,7 +56,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
 
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("id, name, slug")
+      .select("id, name, slug, students_mode")
       .eq("slug", data.slug)
       .maybeSingle();
     if (tenantError) throw tenantError;
@@ -67,6 +68,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
     });
     if (!isManager) throw new Error("غير مصرح لك بهذا الإجراء");
 
+    const inAccountsMode = (tenant as unknown as { students_mode?: string }).students_mode === "accounts";
     const { resolveTrackId, resolveCircleId } = createTrackCircleResolver(supabaseAdmin, tenant.id);
 
     const results: BulkImportStudentRowResult[] = [];
@@ -78,30 +80,55 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         const trackId = await resolveTrackId(row.track_name);
         const circleId = await resolveCircleId(trackId, row.circle_name);
 
-        // نفس شكل صف تُضيفه المديرة يدويًا بالضبط — لا فرق بين طالبة
-        // استُوردت من ملف وطالبة أُضيفت من نموذج "طالبة جديدة".
+        const insertPayload: Record<string, unknown> = {
+          tenant_id: tenant.id,
+          full_name: row.full_name,
+          guardian_name: row.guardian_name || null,
+          guardian_phone: row.guardian_phone || null,
+          date_of_birth: row.date_of_birth || null,
+          age: row.age ?? null,
+          country: row.country || null,
+        };
+
+        let linkedUserId: string | null = null;
+        let accountMessage = "";
+
+        if (inAccountsMode) {
+          if (row.email) {
+            const tempPassword = row.password ?? generateTempPassword();
+            const { createStudentAccount } = await import("@/lib/student-accounts.server");
+            const { user, error: accountError } = await createStudentAccount({
+              email: row.email,
+              password: tempPassword,
+              fullName: row.full_name,
+              tenantId: tenant.id,
+              supabaseAdmin,
+            });
+            if (accountError || !user) {
+              throw new Error(accountError || "فشل إنشاء حساب الطالبة");
+            }
+            linkedUserId = user.id;
+            accountMessage = ` — حساب: ${row.email} / كلمة السر المؤقتة: ${tempPassword}`;
+          } else {
+            accountMessage = " — لم يُنشأ حساب (البريد غير متوفر)";
+          }
+        }
+
+        if (linkedUserId) insertPayload.user_id = linkedUserId;
+
         const { data: student, error: studentError } = await supabaseAdmin
           .from("students")
-          .insert({
-            tenant_id: tenant.id,
-            full_name: row.full_name,
-            guardian_name: row.guardian_name || null,
-            guardian_phone: row.guardian_phone || null,
-            date_of_birth: row.date_of_birth || null,
-            age: row.age ?? null,
-            country: row.country || null,
-          })
+          .insert(insertPayload)
           .select("id")
           .single();
         if (studentError) throw new Error(studentError.message);
 
-        // بما إن الطالبة تنتمي لحلقة واحدة فقط، الإدراج المباشر هنا آمن.
         const { error: linkError } = await supabaseAdmin
           .from("circle_students")
           .insert({ circle_id: circleId, student_id: student.id });
         if (linkError) throw new Error(linkError.message);
 
-        results.push({ row: rowNum, full_name: row.full_name, status: "created", message: "تمت الإضافة" });
+        results.push({ row: rowNum, full_name: row.full_name, status: "created", message: `تمت الإضافة${accountMessage}` });
       } catch (e) {
         results.push({
           row: rowNum,
@@ -114,3 +141,12 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
 
     return { results };
   });
+
+function generateTempPassword() {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 12; i++) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return out;
+}
