@@ -12,6 +12,10 @@ const rowSchema = z.object({
   country: z.string().trim().max(100).nullable().optional(),
   track_name: z.string().trim().min(1).max(120),
   circle_name: z.string().trim().min(1).max(120),
+  /** بريد الطالبة — مطلوب فقط في وضع "حسابات الطالبات" (students_mode = accounts) */
+  email: z.string().trim().email().max(255).nullable().optional(),
+  /** كلمة سر مؤقتة — إذا فُقِدَت تُولَّد تلقائيًا */
+  password: z.string().trim().min(8).max(72).nullable().optional(),
 });
 
 const importSchema = z.object({
