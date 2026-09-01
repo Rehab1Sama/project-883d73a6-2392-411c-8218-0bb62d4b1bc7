@@ -348,8 +348,11 @@ function StudentsPage() {
           </div>
           <p className="text-xs text-muted-foreground">
             الأعمدة بالترتيب: الاسم، اسم ولي الأمر، جوال ولي الأمر، تاريخ الميلاد، العمر، البلد، المسار،
-            الحلقة. تُضاف كل طالبة بنفس شكل الإضافة اليدوية بالضبط، وتُنشأ المسار/الحلقة تلقائيًا إن لم
+            الحلقة، البريد (اختياري)، كلمة السر المؤقتة (اختياري). تُنشأ المسار/الحلقة تلقائيًا إن لم
             يكونا موجودَين — بشرط ألا يتكرر اسمهما.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            رابط تسجيل الطالبات العام: <strong className="font-medium">{typeof window !== "undefined" ? `${window.location.origin}/s/${tenant.slug}` : `/s/${tenant.slug}`}</strong>
           </p>
           {importResults ? (
             <div className="mt-2 max-h-60 overflow-y-auto rounded-lg border border-border">
