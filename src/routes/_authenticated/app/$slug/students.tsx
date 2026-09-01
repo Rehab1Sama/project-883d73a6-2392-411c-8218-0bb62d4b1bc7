@@ -268,6 +268,8 @@ function StudentsPage() {
         country: string | null;
         track_name: string;
         circle_name: string;
+        email: string | null;
+        password: string | null;
       }[] = [];
       sheet.eachRow((row, index) => {
         if (index === 1) return; // ترويسة
@@ -275,6 +277,7 @@ function StudentsPage() {
         const full_name = cell(1);
         if (!full_name) return;
         const ageRaw = cell(5);
+        const email = cell(9) || null;
         rows.push({
           full_name,
           guardian_name: cell(2) || null,
@@ -284,6 +287,8 @@ function StudentsPage() {
           country: cell(6) || null,
           track_name: cell(7),
           circle_name: cell(8),
+          email,
+          password: email ? cell(10) || null : null, // كلمة السر غير ذات صلة بدون بريد
         });
       });
       if (rows.length === 0) throw new Error("لم نجد صفوفًا صالحة في الملف");
