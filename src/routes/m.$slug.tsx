@@ -123,8 +123,10 @@ function TenantPublicPage() {
               <ArrowLeft className="size-4" />
             </Link>
           </Button>
-          <Button size="lg" variant="outline" disabled={!tenant.registration_open}>
-            {tenant.registration_open ? "التسجيل في المقرأة" : "التسجيل مغلق حاليًا"}
+          <Button asChild size="lg" variant="outline" disabled={!tenant.registration_open}>
+            <Link to="/s/$slug" params={{ slug: tenant.slug }}>
+              {tenant.registration_open ? "التسجيل في المقرأة" : "التسجيل مغلق حاليًا"}
+            </Link>
           </Button>
           {tenant.volunteering_open ? (
             <Button asChild size="lg" variant="secondary">

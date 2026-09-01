@@ -12,6 +12,10 @@ const rowSchema = z.object({
   country: z.string().trim().max(100).nullable().optional(),
   track_name: z.string().trim().min(1).max(120),
   circle_name: z.string().trim().min(1).max(120),
+  /** بريد الطالبة — مطلوب فقط في وضع "حسابات الطالبات" (students_mode = accounts) */
+  email: z.string().trim().email().max(255).nullable().optional(),
+  /** كلمة سر مؤقتة — إذا فُقِدَت تُولَّد تلقائيًا */
+  password: z.string().trim().min(8).max(72).nullable().optional(),
 });
 
 const importSchema = z.object({
@@ -33,8 +37,15 @@ export type BulkImportStudentRowResult = {
 
 /**
  * استيراد دفعي للطالبات مع إنشاء المسار والحلقة تلقائيًا من الاسم إن لم
- * يكونا موجودين (بدون تكرار). هذا استيراد بيانات فقط — لا يُنشئ حساب
- * دخول للطالبة (تسجيل الدخول للطالبات ميزة منفصلة تُدار من الإعدادات).
+ * يكونا موجودين (بدون تكرار).
+ *
+ * في وضع "سجلات فقط" (students_mode = records): تُستورد الطالبات كسجلات فقط
+ * بدون حساب دخول.
+ *
+ * في وضع "حسابات الطالبات" (students_mode = accounts): إذا وُفِّر البريد
+ * يُنشَأ حساب دخول للطالبة ويُربط بصفها، ويُرسل البريد وكلمة السر المؤقتة
+ * في نتيجة الاستيراد. إذا فُقِد البريد يُستورد السجل فقط وتُبيَّن رسالة
+ * بأن الحساب لم يُنشأ لغياب البريد.
  */
 export const bulkImportStudents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -45,7 +56,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
 
     const { data: tenant, error: tenantError } = await supabase
       .from("tenants")
-      .select("id, name, slug")
+      .select("id, name, slug, students_mode")
       .eq("slug", data.slug)
       .maybeSingle();
     if (tenantError) throw tenantError;
@@ -57,6 +68,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
     });
     if (!isManager) throw new Error("غير مصرح لك بهذا الإجراء");
 
+    const inAccountsMode = (tenant as unknown as { students_mode?: string }).students_mode === "accounts";
     const { resolveTrackId, resolveCircleId } = createTrackCircleResolver(supabaseAdmin, tenant.id);
 
     const results: BulkImportStudentRowResult[] = [];
@@ -68,8 +80,6 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         const trackId = await resolveTrackId(row.track_name);
         const circleId = await resolveCircleId(trackId, row.circle_name);
 
-        // نفس شكل صف تُضيفه المديرة يدويًا بالضبط — لا فرق بين طالبة
-        // استُوردت من ملف وطالبة أُضيفت من نموذج "طالبة جديدة".
         const { data: student, error: studentError } = await supabaseAdmin
           .from("students")
           .insert({
@@ -85,13 +95,30 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
           .single();
         if (studentError) throw new Error(studentError.message);
 
-        // بما إن الطالبة تنتمي لحلقة واحدة فقط، الإدراج المباشر هنا آمن.
+        let accountMessage = "";
+
+        if (inAccountsMode && row.email) {
+          const tempPassword = row.password ?? generateTempPassword();
+          const { createStudentAccount } = await import("@/lib/student-accounts.server");
+          await createStudentAccount(supabaseAdmin, {
+            studentId: student.id,
+            tenantId: tenant.id,
+            trackId,
+            circleId,
+            email: row.email,
+            password: tempPassword,
+          });
+          accountMessage = ` — حساب: ${row.email} / كلمة السر المؤقتة: ${tempPassword}`;
+        } else if (inAccountsMode) {
+          accountMessage = " — لم يُنشأ حساب (البريد غير متوفر)";
+        }
+
         const { error: linkError } = await supabaseAdmin
           .from("circle_students")
           .insert({ circle_id: circleId, student_id: student.id });
         if (linkError) throw new Error(linkError.message);
 
-        results.push({ row: rowNum, full_name: row.full_name, status: "created", message: "تمت الإضافة" });
+        results.push({ row: rowNum, full_name: row.full_name, status: "created", message: `تمت الإضافة${accountMessage}` });
       } catch (e) {
         results.push({
           row: rowNum,
@@ -104,3 +131,12 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
 
     return { results };
   });
+
+function generateTempPassword() {
+  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  let out = "";
+  for (let i = 0; i < 12; i++) {
+    out += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return out;
+}
