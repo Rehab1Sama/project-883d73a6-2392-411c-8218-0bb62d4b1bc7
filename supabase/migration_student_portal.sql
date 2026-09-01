@@ -220,3 +220,9 @@ end;
 $$;
 
 grant execute on function public.student_portal(text) to authenticated;
+
+-- تقييد التنفيذ: منع الزوار غير المسجلين من استدعاء الدوال
+revoke execute on function public.student_portal(text) from public, anon;
+revoke execute on function public.my_student_id(uuid) from public, anon;
+grant execute on function public.student_portal(text) to authenticated;
+grant execute on function public.my_student_id(uuid) to authenticated;
