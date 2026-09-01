@@ -88,7 +88,7 @@ function DashboardRouter() {
             return (
               <Link
                 key={t.id}
-                to="/app/$slug"
+                to={isStudentOnly ? "/student/$slug" : "/app/$slug"}
                 params={{ slug: t.slug }}
                 className="surface-panel flex items-center gap-3 p-4 transition-shadow hover:shadow-lifted"
               >
