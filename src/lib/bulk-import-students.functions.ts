@@ -80,48 +80,38 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
         const trackId = await resolveTrackId(row.track_name);
         const circleId = await resolveCircleId(trackId, row.circle_name);
 
-        const insertPayload: Record<string, unknown> = {
-          tenant_id: tenant.id,
-          full_name: row.full_name,
-          guardian_name: row.guardian_name || null,
-          guardian_phone: row.guardian_phone || null,
-          date_of_birth: row.date_of_birth || null,
-          age: row.age ?? null,
-          country: row.country || null,
-        };
-
-        let linkedUserId: string | null = null;
-        let accountMessage = "";
-
-        if (inAccountsMode) {
-          if (row.email) {
-            const tempPassword = row.password ?? generateTempPassword();
-            const { createStudentAccount } = await import("@/lib/student-accounts.server");
-            const { user, error: accountError } = await createStudentAccount({
-              email: row.email,
-              password: tempPassword,
-              fullName: row.full_name,
-              tenantId: tenant.id,
-              supabaseAdmin,
-            });
-            if (accountError || !user) {
-              throw new Error(accountError || "فشل إنشاء حساب الطالبة");
-            }
-            linkedUserId = user.id;
-            accountMessage = ` — حساب: ${row.email} / كلمة السر المؤقتة: ${tempPassword}`;
-          } else {
-            accountMessage = " — لم يُنشأ حساب (البريد غير متوفر)";
-          }
-        }
-
-        if (linkedUserId) insertPayload.user_id = linkedUserId;
-
         const { data: student, error: studentError } = await supabaseAdmin
           .from("students")
-          .insert(insertPayload)
+          .insert({
+            tenant_id: tenant.id,
+            full_name: row.full_name,
+            guardian_name: row.guardian_name || null,
+            guardian_phone: row.guardian_phone || null,
+            date_of_birth: row.date_of_birth || null,
+            age: row.age ?? null,
+            country: row.country || null,
+          })
           .select("id")
           .single();
         if (studentError) throw new Error(studentError.message);
+
+        let accountMessage = "";
+
+        if (inAccountsMode && row.email) {
+          const tempPassword = row.password ?? generateTempPassword();
+          const { createStudentAccount } = await import("@/lib/student-accounts.server");
+          await createStudentAccount(supabaseAdmin, {
+            studentId: student.id,
+            tenantId: tenant.id,
+            trackId,
+            circleId,
+            email: row.email,
+            password: tempPassword,
+          });
+          accountMessage = ` — حساب: ${row.email} / كلمة السر المؤقتة: ${tempPassword}`;
+        } else if (inAccountsMode) {
+          accountMessage = " — لم يُنشأ حساب (البريد غير متوفر)";
+        }
 
         const { error: linkError } = await supabaseAdmin
           .from("circle_students")
