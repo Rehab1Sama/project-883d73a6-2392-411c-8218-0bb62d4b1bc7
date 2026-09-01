@@ -42,10 +42,11 @@ export async function createStudentAccount(admin: typeof supabaseAdmin, args: Li
     throw new Error("هذا البريد مستخدم مسبقًا — استخدمي بريدًا آخر");
   }
 
-  const { error: linkError } = await admin
-    .from("students")
+  // عمود user_id مضاف بعد آخر توليد للأنواع، لذا نمرّره كتحديث غير مُقيَّد بالأنواع
+  const { error: linkError } = await (admin.from("students") as any)
     .update({ user_id: userId })
     .eq("id", args.studentId);
+
   if (linkError) {
     await admin.auth.admin.deleteUser(userId);
     throw new Error(`تعذّر ربط الحساب بسجل الطالبة: ${linkError.message}`);
