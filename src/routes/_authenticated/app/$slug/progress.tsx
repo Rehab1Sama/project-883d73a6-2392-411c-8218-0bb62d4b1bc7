@@ -256,35 +256,30 @@ function ProgressPage() {
         status: absentIds.has(s.id) ? ("absent" as const) : ("present" as const),
       }));
 
-      // لا نعتمد على upsert/onConflict لأن الجداول ما فيها قيود فريدة
-      // مطابقة (كان هذا سبب رفض الحفظ). نحذف سجلات اليوم لهؤلاء الطالبات
-      // ثم نُدرج من جديد.
-      const studentIds = circleStudents.map((s) => s.id);
-      if (studentIds.length) {
+      // الحفظ بـ upsert اعتمادًا على القيدين الفريدين في
+      // sql/20260903_progress_records_unique.sql — لا حذف ثم إدراج، فلا تتكرر
+      // السجلات إذا حُفظت الشاشة أكثر من مرة أو من متصفحين.
+      // يبقى الحذف للغائبات فقط: لا يصح أن تكون غايبة ولها نصاب مسجَّل.
+      if (absentIds.size) {
         const { error: delErr } = await supabase
           .from("progress_records")
           .delete()
           .eq("tenant_id", tenant!.id)
           .eq("track_id", trackId)
           .eq("record_date", date)
-          .in("student_id", studentIds);
+          .in("student_id", Array.from(absentIds));
         if (delErr) throw delErr;
-
-        const { error: delAtt } = await supabase
-          .from("attendance")
-          .delete()
-          .eq("tenant_id", tenant!.id)
-          .eq("circle_id", circleId)
-          .eq("record_date", date)
-          .in("student_id", studentIds);
-        if (delAtt) throw delAtt;
       }
       if (rows.length) {
-        const { error } = await supabase.from("progress_records").insert(rows);
+        const { error } = await supabase
+          .from("progress_records")
+          .upsert(rows, { onConflict: "student_id,track_id,category,record_date" });
         if (error) throw error;
       }
       if (attendanceRows.length) {
-        const { error } = await supabase.from("attendance").insert(attendanceRows);
+        const { error } = await supabase
+          .from("attendance")
+          .upsert(attendanceRows, { onConflict: "student_id,circle_id,record_date" });
         if (error) throw error;
       }
     },
