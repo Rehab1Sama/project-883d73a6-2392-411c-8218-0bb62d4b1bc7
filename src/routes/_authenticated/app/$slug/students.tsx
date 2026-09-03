@@ -32,7 +32,7 @@ import {
   buildCsv,
   downloadCsv,
   mapRows,
-  parseCsv,
+  readSheetGrid,
   toNumber,
   STUDENT_ALIASES,
   STUDENT_HEADERS,
