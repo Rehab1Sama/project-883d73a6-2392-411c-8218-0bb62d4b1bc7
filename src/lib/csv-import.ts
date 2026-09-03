@@ -154,3 +154,23 @@ export function toNumber(value: string | undefined): number | null {
   const n = Number(value.replace(/[^\d.-]/g, ""));
   return Number.isFinite(n) && n > 0 ? Math.round(n) : null;
 }
+
+/**
+ * يقرأ ملف Excel أو CSV إلى شبكة نصية (أول صف = الترويسة)، ليُمرَّر إلى mapRows.
+ * exceljs يُحمَّل عند الحاجة فقط حتى لا يثقل الحزمة الأولى.
+ */
+export async function readSheetGrid(file: File): Promise<string[][]> {
+  if (/\.csv$/i.test(file.name)) return parseCsv(await file.text());
+  const ExcelJS = await import("exceljs");
+  const wb = new ExcelJS.Workbook();
+  await wb.xlsx.load(await file.arrayBuffer());
+  const sheet = wb.worksheets[0];
+  if (!sheet) throw new Error("الملف فارغ");
+  const grid: string[][] = [];
+  sheet.eachRow((row) => {
+    const cells: string[] = [];
+    row.eachCell({ includeEmpty: true }, (c) => cells.push(String(c.text ?? "").trim()));
+    grid.push(cells);
+  });
+  return grid;
+}
