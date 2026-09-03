@@ -34,6 +34,8 @@ type Props = {
   description?: string;
   crumbs?: Crumb[];
   actions?: ReactNode;
+  /** واجهة مبسّطة: قائمة جانبية بزر تسجيل الخروج فقط، بلا مساعد ولا زر تثبيت (بوابة الطالبة) */
+  minimal?: boolean;
   children: ReactNode;
 };
 
@@ -46,6 +48,7 @@ export function AppShell({
   description,
   crumbs = [],
   actions,
+  minimal = false,
   children,
 }: Props) {
   const [open, setOpen] = useState(false);
@@ -120,7 +123,7 @@ export function AppShell({
             </p>
           </div>
         </div>
-        <InstallAppButton className="mb-2 w-full" />
+        {minimal ? null : <InstallAppButton className="mb-2 w-full" />}
         <button
           onClick={handleSignOut}
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-sidebar/60 px-3 py-2 text-xs text-sidebar-foreground/85 transition-colors hover:bg-sidebar"
@@ -196,7 +199,7 @@ export function AppShell({
         </main>
       </div>
 
-      <AssistantWidget />
+      {minimal ? null : <AssistantWidget />}
     </div>
   );
 }

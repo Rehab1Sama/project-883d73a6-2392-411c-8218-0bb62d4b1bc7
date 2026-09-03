@@ -257,7 +257,7 @@ function ProgressPage() {
       }));
 
       // الحفظ بـ upsert اعتمادًا على القيدين الفريدين في
-      // sql/20260903_progress_records_unique.sql — لا حذف ثم إدراج، فلا تتكرر
+      // supabase/migrations/20260903000000_progress_records_unique.sql — لا حذف ثم إدراج، فلا تتكرر
       // السجلات إذا حُفظت الشاشة أكثر من مرة أو من متصفحين.
       // يبقى الحذف للغائبات فقط: لا يصح أن تكون غايبة ولها نصاب مسجَّل.
       if (absentIds.size) {
