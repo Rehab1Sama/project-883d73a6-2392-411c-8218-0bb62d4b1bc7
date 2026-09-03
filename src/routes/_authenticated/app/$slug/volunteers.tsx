@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Heart, Check, X, Upload, Loader2, Inbox, Send, Copy, MessageCircle } from "lucide-react";
+import { Heart, Check, X, Upload, Loader2, Inbox, Send, Copy, MessageCircle, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
 import { visibleTenantNav } from "@/components/layout/nav";
