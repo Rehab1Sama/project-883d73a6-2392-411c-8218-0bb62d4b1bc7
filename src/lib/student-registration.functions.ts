@@ -45,7 +45,7 @@ export type PublicRegistrationInfo = {
 
 /** بيانات صفحة تسجيل الطالبات العامة: المقرأة + حلقاتها المتاحة */
 export const getPublicRegistrationInfo = createServerFn({ method: "GET" })
-  .inputValidator((input: unknown) => z.object({ slug: slugSchema }).parse(input))
+  .validator((input: unknown) => z.object({ slug: slugSchema }).parse(input))
   .handler(async ({ data }): Promise<PublicRegistrationInfo | null> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -98,7 +98,7 @@ export type StudentRegistrationResult = {
  * students_mode = 'accounts'؛ غير ذلك يُتجاهل البريد وكلمة السر.
  */
 export const registerStudent = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => registerSchema.parse(input))
+  .validator((input: unknown) => registerSchema.parse(input))
   .handler(async ({ data }): Promise<StudentRegistrationResult> => {
     const { guardPublicRate } = await import("@/lib/rate-limit-guard.server");
     await guardPublicRate("student_registration", 8, 600);

@@ -27,6 +27,7 @@ import { useTenantContext } from "@/hooks/useTenantContext";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
 import type { StudentRow } from "@/lib/types";
 import { bulkImportStudents, type BulkImportStudentRowResult } from "@/lib/bulk-import-students.functions";
+import { createStudentManually } from "@/lib/create-student.functions";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/students")({
   head: () => ({
@@ -50,10 +51,12 @@ type StudentEdit = {
   country: string;
   notes: string;
   circle_id: string | null;
+  /** بريد اختياري — يُستخدم فقط لإنشاء حساب دخول عند إضافة طالبة جديدة والمقرأة بوضع "حسابات" */
+  email: string;
 };
 
 function StudentsPage() {
-  const { tenant, canManage, canRead, loading, isAcademicDeputy, canManageStudentInTracks, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canManage, canRead, loading, isAcademicDeputy, canManageStudentInTracks, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
   const qc = useQueryClient();
   const [edit, setEdit] = useState<StudentEdit | null>(null);
   const [term, setTerm] = useState("");
@@ -111,8 +114,31 @@ function StudentsPage() {
     },
   });
 
+  const createWithAccount = useServerFn(createStudentManually);
+
   const save = useMutation({
     mutationFn: async (values: StudentEdit) => {
+      // إنشاء طالبة جديدة والمقرأة بوضع "حسابات" وتوفّر بريد: تُنشأ عبر
+      // دالة خادم مخصصة تنشئ حساب دخول أيضًا (مثل الاستيراد الجماعي)،
+      // بدل ما تبقى الطالبة بدون بوابة لأنها أُضيفت يدويًا.
+      if (!values.id && tenant?.students_mode === "accounts" && values.email.trim()) {
+        const result = await createWithAccount({
+          data: {
+            slug: tenant.slug,
+            full_name: values.full_name.trim(),
+            guardian_name: values.guardian_name.trim() || null,
+            guardian_phone: values.guardian_phone.trim() || null,
+            date_of_birth: values.date_of_birth || null,
+            age: values.age.trim() ? Number(values.age.trim()) : null,
+            country: values.country.trim() || null,
+            notes: values.notes.trim() || null,
+            circle_id: values.circle_id,
+            email: values.email.trim(),
+          },
+        });
+        return result;
+      }
+
       const payload = {
         full_name: values.full_name.trim(),
         guardian_name: values.guardian_name.trim() || null,
@@ -164,9 +190,16 @@ function StudentsPage() {
           if (error) throw error;
         }
       }
+      return null;
     },
-    onSuccess: () => {
-      toast.success("تم حفظ الطالبة");
+    onSuccess: (result) => {
+      if (result && "accountCreated" in result && result.accountCreated) {
+        toast.success(`تم حفظ الطالبة وإنشاء حسابها — كلمة السر المؤقتة: ${result.tempPassword}`, {
+          duration: 20000,
+        });
+      } else {
+        toast.success("تم حفظ الطالبة");
+      }
       setEdit(null);
       void qc.invalidateQueries({ queryKey: ["students"] });
       void qc.invalidateQueries({ queryKey: ["enrollments"] });
@@ -212,7 +245,7 @@ function StudentsPage() {
         brandName={tenant.name}
         brandSubtitle="الطالبات"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="الطالبات"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "الطالبات" }]}
       >
@@ -247,6 +280,7 @@ function StudentsPage() {
       country: "",
       notes: "",
       circle_id: null,
+      email: "",
     });
   }
 
@@ -266,7 +300,7 @@ function StudentsPage() {
         date_of_birth: string | null;
         age: number | null;
         country: string | null;
-        track_name: string;
+        track_name: string | null;
         circle_name: string;
         email: string | null;
         password: string | null;
@@ -285,7 +319,7 @@ function StudentsPage() {
           date_of_birth: cell(4) || null,
           age: ageRaw ? Number(ageRaw) || null : null,
           country: cell(6) || null,
-          track_name: cell(7),
+          track_name: cell(7) || null,
           circle_name: cell(8),
           email,
           password: email ? cell(10) || null : null, // كلمة السر غير ذات صلة بدون بريد
@@ -316,7 +350,7 @@ function StudentsPage() {
       brandName={tenant.name}
       brandSubtitle="الطالبات"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="الطالبات"
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "الطالبات" }]}
       actions={
@@ -476,6 +510,7 @@ function StudentsPage() {
                               country: s.country ?? "",
                               notes: s.notes ?? "",
                               circle_id: enroll[s.id] ?? null,
+                              email: "",
                             })
                           }
                         >
@@ -511,6 +546,20 @@ function StudentsPage() {
                   maxLength={120}
                 />
               </div>
+              {!edit.id && tenant?.students_mode === "accounts" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="s-email">بريد الطالبة (لإنشاء حساب دخول لها)</Label>
+                  <Input
+                    id="s-email"
+                    type="email"
+                    dir="ltr"
+                    value={edit.email}
+                    onChange={(e) => setEdit({ ...edit, email: e.target.value })}
+                    placeholder="اتركيه فارغًا لإضافتها كسجل بدون حساب دخول"
+                    maxLength={255}
+                  />
+                </div>
+              ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="s-guardian">اسم وليّ الأمر</Label>

@@ -36,6 +36,8 @@ function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   const nextPath = search.next && search.next.startsWith("/") ? search.next : "/dashboard";
 
@@ -98,6 +100,26 @@ function AuthPage() {
     toast.success("تم إنشاء الحساب، تحققي من بريدك لتفعيله");
   }
 
+  async function handleForgotPassword(e: React.FormEvent<HTMLFormElement>): Promise<void> {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const parsed = emailSchema.safeParse(form.get("email"));
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]!.message);
+      return;
+    }
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("تعذّر إرسال رابط إعادة التعيين");
+      return;
+    }
+    setForgotSent(true);
+  }
+
   async function handleGoogle(): Promise<void> {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
@@ -122,7 +144,44 @@ function AuthPage() {
       </Link>
 
       <div className="surface-panel w-full max-w-md p-6">
-        {sent ? (
+        {forgotMode ? (
+          forgotSent ? (
+            <div className="space-y-3 text-center">
+              <h1 className="text-lg font-semibold">تحققي من بريدك</h1>
+              <p className="text-sm text-muted-foreground">
+                لو كان بريدك مسجّلًا لدينا، أرسلنا رابط إعادة تعيين كلمة المرور إليه.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setForgotMode(false);
+                  setForgotSent(false);
+                }}
+              >
+                رجوع لتسجيل الدخول
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="space-y-1">
+                <h1 className="text-lg font-semibold">إعادة تعيين كلمة المرور</h1>
+                <p className="text-sm text-muted-foreground">
+                  أدخلي بريدك الإلكتروني وسنرسل لك رابطًا لتعيين كلمة مرور جديدة.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="fp-email">البريد الإلكتروني</Label>
+                <Input id="fp-email" name="email" type="email" dir="ltr" autoComplete="email" required />
+              </div>
+              <Button type="submit" className="w-full" disabled={busy}>
+                {busy ? <Loader2 className="size-4 animate-spin" /> : "إرسال رابط إعادة التعيين"}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => setForgotMode(false)}>
+                رجوع لتسجيل الدخول
+              </Button>
+            </form>
+          )
+        ) : sent ? (
           <div className="space-y-3 text-center">
             <h1 className="text-lg font-semibold">تحققي من بريدك</h1>
             <p className="text-sm text-muted-foreground">
@@ -152,6 +211,13 @@ function AuthPage() {
                 <Button type="submit" className="w-full" disabled={busy}>
                   {busy ? <Loader2 className="size-4 animate-spin" /> : "تسجيل الدخول"}
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setForgotMode(true)}
+                  className="mx-auto block text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
+                >
+                  نسيتِ كلمة المرور؟
+                </button>
               </form>
             </TabsContent>
 
@@ -177,7 +243,7 @@ function AuthPage() {
           </Tabs>
         )}
 
-        {!sent ? (
+        {!sent && !forgotMode ? (
           <>
             <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
               <span className="h-px flex-1 bg-border" />

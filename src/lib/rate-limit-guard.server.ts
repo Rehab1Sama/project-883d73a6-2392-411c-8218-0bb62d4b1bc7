@@ -1,4 +1,4 @@
-import { getRequest } from "@tanstack/react-start-server";
+import { getRequest } from "@tanstack/react-start/server";
 import { clientIp, checkRateLimit } from "@/lib/rate-limit.server";
 
 /** يرفض الطلب برمز 429 عند تجاوز الحد — للاستخدام داخل دوال الخادم العامة */

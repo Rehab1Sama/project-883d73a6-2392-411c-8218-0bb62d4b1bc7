@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useTenantFeatures } from "@/hooks/useTenantFeatures";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
-import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS } from "@/lib/roles";
+import { ROLE_LABELS, SUBSCRIPTION_STATUS_LABELS, isManagerRole } from "@/lib/roles";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/")({
   component: TenantDashboard,
@@ -25,7 +25,7 @@ function TenantDashboard() {
       const { data, error } = await supabase
         .from("tenants")
         .select(
-          "id, name, slug, logo_url, primary_color, accent_color, short_description, status, subscriptions(status, expires_at, plans(name_ar, max_students, max_circles))",
+          "id, name, slug, logo_url, primary_color, accent_color, short_description, status, progress_entry_mode, subscriptions(status, expires_at, plans(name_ar, max_students, max_circles))",
         )
         .eq("slug", slug)
         .maybeSingle();
@@ -73,6 +73,19 @@ function TenantDashboard() {
 
   const myRoles = tenant ? roles.filter((r) => r.tenant_id === tenant.id).map((r) => r.role) : [];
   const canView = isPlatformOwner || myRoles.length > 0;
+  const canManage = isPlatformOwner || myRoles.some(isManagerRole);
+  // ⚠️ إدخال الأنصبة/التقدم مقصور على المعلمة/المشرفة وفق إعداد المقرأة —
+  // نفس منطق useTenantContext (راجعي src/hooks/useTenantContext.ts) —
+  // يُستخدم فقط لإظهار/إخفاء رابط "الأنصبة والتقدم" في القائمة الجانبية.
+  const progressMode = tenant?.progress_entry_mode ?? "both";
+  const canRecord =
+    (myRoles.includes("teacher") && (progressMode === "teacher" || progressMode === "both")) ||
+    (myRoles.includes("supervisor") && (progressMode === "supervisor" || progressMode === "both"));
+  const isCircleScopedOnly =
+    !isPlatformOwner &&
+    !canManage &&
+    !myRoles.includes("academic_deputy") &&
+    (myRoles.includes("teacher") || myRoles.includes("supervisor"));
 
   if (!tenant || !canView) {
     return (
@@ -98,7 +111,7 @@ function TenantDashboard() {
       brandName={tenant.name}
       brandSubtitle={myRoles.length ? ROLE_LABELS[myRoles[0]!] : "مالكة المنصة"}
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(slug, hasFeature)}
+      nav={visibleTenantNav(slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="لوحة المقرأة"
       crumbs={[{ label: tenant.name }, { label: "لوحة المقرأة" }]}
     >

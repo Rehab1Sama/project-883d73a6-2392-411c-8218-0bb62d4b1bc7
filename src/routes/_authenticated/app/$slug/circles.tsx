@@ -49,11 +49,13 @@ type CircleEdit = {
 };
 
 function CirclesPage() {
-  const { tenant, canManage, canRead, loading, canManageTrack, isAcademicDeputy, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canManage, canRead, loading, canManageTrack, canViewCircle, isAcademicDeputy, myTrackScopes, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
   const qc = useQueryClient();
   const [edit, setEdit] = useState<CircleEdit | null>(null);
-  // القيادة تدير كل الحلقات؛ النائبة الأكاديمية تدير حلقات مسارها فقط
-  const canManageAny = canManage || isAcademicDeputy;
+  // القيادة تدير كل الحلقات؛ النائبة الأكاديمية تدير حلقات مسارها فقط —
+  // وبما إن "بلا مسار مسنَد" تعني بلا صلاحية، لا نمنحها زر "حلقة جديدة"
+  // ولا قائمة موظفات إلا لو عندها مسار واحد على الأقل فعليًا مسنَد لها.
+  const canManageAny = canManage || (isAcademicDeputy && myTrackScopes.length > 0);
 
   useTenantTheme(tenant?.primary_color ?? null, tenant?.accent_color ?? null);
 
@@ -190,7 +192,7 @@ function CirclesPage() {
         brandName={tenant.name}
         brandSubtitle="الحلقات"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="الحلقات"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "الحلقات" }]}
       >
@@ -199,7 +201,11 @@ function CirclesPage() {
     );
   }
 
-  const rows = circlesQuery.data ?? [];
+  const allRows = circlesQuery.data ?? [];
+  // ⚠️ فلترة فعلية للقائمة حسب نطاق المستخدمة — القيادة/النائبة الإدارية
+  // ترى كل الحلقات، مسؤولة المسار ترى حلقات مسارها المسنَد فقط (ولا شي لو
+  // غير مقيَّدة)، والمعلمة/المشرفة ترى حلقتها المسنَدة فقط.
+  const rows = allRows.filter((c) => canViewCircle(c));
   const counts = studentCountsQuery.data ?? {};
   const trackMap = new Map((tracksQuery.data ?? []).map((t) => [t.id, t]));
 
@@ -212,7 +218,7 @@ function CirclesPage() {
       brandName={tenant.name}
       brandSubtitle="الحلقات"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="الحلقات"
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "الحلقات" }]}
       actions={
@@ -229,8 +235,12 @@ function CirclesPage() {
       ) : rows.length === 0 ? (
         <EmptyState
           icon={<Plus className="size-6" />}
-          title="لا توجد حلقات بعد"
-          description="أنشئي أول حلقة واربطيها بمسار، وحدّدي معلمتها ومواعيدها."
+          title={allRows.length > 0 ? "لا حلقات مسندة إليك بعد" : "لا توجد حلقات بعد"}
+          description={
+            allRows.length > 0
+              ? "ما عندك مسار أو حلقة مسندة لك حاليًا. تواصلي مع قائدة المقرأة لتقييدك بمسارك أو حلقتك."
+              : "أنشئي أول حلقة واربطيها بمسار، وحدّدي معلمتها ومواعيدها."
+          }
           action={canManageAny ? <Button onClick={openNew}>إنشاء أول حلقة</Button> : undefined}
         />
       ) : (

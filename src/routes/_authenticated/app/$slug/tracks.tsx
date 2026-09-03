@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { saveTrack, setTrackStatus, deleteTrack } from "@/lib/academic.functions";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Loader2, Route as RouteIcon, Sparkles, Users2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,8 +52,11 @@ function emptyEdit(): EditState {
 }
 
 function TracksPage() {
-  const { tenant, canManage, canRead, loading, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canManage, canRead, loading, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
   const qc = useQueryClient();
+  const saveTrackFn = useServerFn(saveTrack);
+  const setTrackStatusFn = useServerFn(setTrackStatus);
+  const deleteTrackFn = useServerFn(deleteTrack);
   const [edit, setEdit] = useState<EditState | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
@@ -76,20 +81,17 @@ function TracksPage() {
       const categories = TRACK_CATEGORY_KEYS.filter((k) =>
         values.categories.includes(k),
       ) as TrackRow["categories"];
-      const payload = {
-        name: values.name.trim(),
-        category: categories[0] as TrackRow["category"],
-        categories,
-        age_group: values.age_group.trim() || null,
-        notes: values.notes.trim() || null,
-      };
-      if (values.id) {
-        const { error } = await supabase.from("tracks").update(payload).eq("id", values.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from("tracks").insert({ ...payload, tenant_id: tenant!.id });
-        if (error) throw error;
-      }
+      await saveTrackFn({
+        data: {
+          slug: tenant!.slug,
+          id: values.id,
+          name: values.name.trim(),
+          category: categories[0]!,
+          categories,
+          age_group: values.age_group.trim() || null,
+          notes: values.notes.trim() || null,
+        },
+      });
     },
     onSuccess: () => {
       toast.success("تم حفظ المسار");
@@ -97,25 +99,23 @@ function TracksPage() {
       void qc.invalidateQueries({ queryKey: ["tracks"] });
       void qc.invalidateQueries({ queryKey: ["tenant-stats"] });
     },
-    onError: () => toast.error("تعذّر الحفظ"),
+    onError: (e: Error) => toast.error(e.message || "تعذّر الحفظ"),
   });
 
   const toggleStatus = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: "active" | "inactive" }) => {
-      const { error } = await supabase.from("tracks").update({ status }).eq("id", id);
-      if (error) throw error;
+      await setTrackStatusFn({ data: { slug: tenant!.slug, id, status } });
     },
     onSuccess: () => {
       toast.success("تم تحديث الحالة");
       void qc.invalidateQueries({ queryKey: ["tracks"] });
     },
-    onError: () => toast.error("تعذّر تحديث الحالة"),
+    onError: (e: Error) => toast.error(e.message || "تعذّر تحديث الحالة"),
   });
 
   const remove = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tracks").delete().eq("id", id);
-      if (error) throw error;
+      await deleteTrackFn({ data: { slug: tenant!.slug, id } });
     },
     onSuccess: () => {
       toast.success("تم حذف المسار");
@@ -123,9 +123,12 @@ function TracksPage() {
       void qc.invalidateQueries({ queryKey: ["tracks"] });
       void qc.invalidateQueries({ queryKey: ["tenant-stats"] });
     },
-    onError: () =>
-      toast.error("تعذّر الحذف — قد يكون المسار مرتبطًا بحلقات أو سجلات. عطّليه بدلًا من حذفه."),
+    onError: (e: Error) =>
+      toast.error(
+        e.message || "تعذّر الحذف — قد يكون المسار مرتبطًا بحلقات أو سجلات. عطّليه بدلًا من حذفه.",
+      ),
   });
+
 
 
   if (loading || featuresLoading) return <LoadingBlock />;
@@ -152,7 +155,7 @@ function TracksPage() {
         brandName={tenant.name}
         brandSubtitle="المسارات"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="المسارات"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "المسارات" }]}
       >
@@ -177,7 +180,7 @@ function TracksPage() {
       brandName={tenant.name}
       brandSubtitle="المسارات"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="المسارات"
       description="المسار يجمع حلقات بنفس الاسم والفئة العمرية والتوجه، ويمكن أن يضم أكثر من منهج معًا: حفظ جديد، تثبيت، مراجعة قريبة أو بعيدة، مراجعة عامة، وتلاوة."
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "المسارات" }]}

@@ -16,6 +16,7 @@ import { Route as CompareRouteImport } from './routes/compare'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as PlansRouteImport } from './routes/plans'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RolesRouteImport } from './routes/roles'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
@@ -28,13 +29,19 @@ import { Route as AuthenticatedPlatformCompareRouteImport } from './routes/_auth
 import { Route as AuthenticatedPlatformPlansRouteImport } from './routes/_authenticated/platform/plans'
 import { Route as AuthenticatedPlatformRequestsRouteImport } from './routes/_authenticated/platform/requests'
 import { Route as AuthenticatedPlatformTenantsRouteImport } from './routes/_authenticated/platform/tenants'
+import { Route as AuthenticatedStudentIndexRouteImport } from './routes/_authenticated/student/index'
 import { Route as AuthenticatedStudentSlugRouteImport } from './routes/_authenticated/student/$slug'
 import { Route as AuthenticatedAppSlugIndexRouteImport } from './routes/_authenticated/app/$slug/index'
+import { Route as AuthenticatedAppSlugAccountsRouteImport } from './routes/_authenticated/app/$slug/accounts'
+import { Route as AuthenticatedAppSlugCircleReportRouteImport } from './routes/_authenticated/app/$slug/circle-report'
 import { Route as AuthenticatedAppSlugCirclesRouteImport } from './routes/_authenticated/app/$slug/circles'
+import { Route as AuthenticatedAppSlugLinksRouteImport } from './routes/_authenticated/app/$slug/links'
+import { Route as AuthenticatedAppSlugManagementRouteImport } from './routes/_authenticated/app/$slug/management'
 import { Route as AuthenticatedAppSlugProgressRouteImport } from './routes/_authenticated/app/$slug/progress'
 import { Route as AuthenticatedAppSlugRecordsRouteImport } from './routes/_authenticated/app/$slug/records'
 import { Route as AuthenticatedAppSlugReportsRouteImport } from './routes/_authenticated/app/$slug/reports'
 import { Route as AuthenticatedAppSlugSettingsRouteImport } from './routes/_authenticated/app/$slug/settings'
+import { Route as AuthenticatedAppSlugStatsRouteImport } from './routes/_authenticated/app/$slug/stats'
 import { Route as AuthenticatedAppSlugStudentsRouteImport } from './routes/_authenticated/app/$slug/students'
 import { Route as AuthenticatedAppSlugSubscriptionRouteImport } from './routes/_authenticated/app/$slug/subscription'
 import { Route as AuthenticatedAppSlugTracksRouteImport } from './routes/_authenticated/app/$slug/tracks'
@@ -74,6 +81,11 @@ const FeaturesRoute = FeaturesRouteImport.update({
 const PlansRoute = PlansRouteImport.update({
   id: '/plans',
   path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RolesRoute = RolesRouteImport.update({
@@ -142,6 +154,12 @@ const AuthenticatedPlatformTenantsRoute =
     path: '/platform/tenants',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedStudentIndexRoute =
+  AuthenticatedStudentIndexRouteImport.update({
+    id: '/student/',
+    path: '/student/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStudentSlugRoute =
   AuthenticatedStudentSlugRouteImport.update({
     id: '/student/$slug',
@@ -154,10 +172,34 @@ const AuthenticatedAppSlugIndexRoute =
     path: '/app/$slug/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAppSlugAccountsRoute =
+  AuthenticatedAppSlugAccountsRouteImport.update({
+    id: '/app/$slug/accounts',
+    path: '/app/$slug/accounts',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugCircleReportRoute =
+  AuthenticatedAppSlugCircleReportRouteImport.update({
+    id: '/app/$slug/circle-report',
+    path: '/app/$slug/circle-report',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAppSlugCirclesRoute =
   AuthenticatedAppSlugCirclesRouteImport.update({
     id: '/app/$slug/circles',
     path: '/app/$slug/circles',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugLinksRoute =
+  AuthenticatedAppSlugLinksRouteImport.update({
+    id: '/app/$slug/links',
+    path: '/app/$slug/links',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugManagementRoute =
+  AuthenticatedAppSlugManagementRouteImport.update({
+    id: '/app/$slug/management',
+    path: '/app/$slug/management',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAppSlugProgressRoute =
@@ -182,6 +224,12 @@ const AuthenticatedAppSlugSettingsRoute =
   AuthenticatedAppSlugSettingsRouteImport.update({
     id: '/app/$slug/settings',
     path: '/app/$slug/settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAppSlugStatsRoute =
+  AuthenticatedAppSlugStatsRouteImport.update({
+    id: '/app/$slug/stats',
+    path: '/app/$slug/stats',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAppSlugStudentsRoute =
@@ -228,6 +276,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/roles': typeof RolesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -241,11 +290,17 @@ export interface FileRoutesByFullPath {
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/student/': typeof AuthenticatedStudentIndexRoute
+  '/app/$slug/accounts': typeof AuthenticatedAppSlugAccountsRoute
+  '/app/$slug/circle-report': typeof AuthenticatedAppSlugCircleReportRoute
   '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/app/$slug/links': typeof AuthenticatedAppSlugLinksRoute
+  '/app/$slug/management': typeof AuthenticatedAppSlugManagementRoute
   '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
   '/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
   '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/stats': typeof AuthenticatedAppSlugStatsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
   '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
@@ -261,6 +316,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/roles': typeof RolesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -274,11 +330,17 @@ export interface FileRoutesByTo {
   '/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/platform': typeof AuthenticatedPlatformIndexRoute
+  '/student': typeof AuthenticatedStudentIndexRoute
+  '/app/$slug/accounts': typeof AuthenticatedAppSlugAccountsRoute
+  '/app/$slug/circle-report': typeof AuthenticatedAppSlugCircleReportRoute
   '/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/app/$slug/links': typeof AuthenticatedAppSlugLinksRoute
+  '/app/$slug/management': typeof AuthenticatedAppSlugManagementRoute
   '/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
   '/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
   '/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/app/$slug/stats': typeof AuthenticatedAppSlugStatsRoute
   '/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
   '/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
@@ -296,6 +358,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/features': typeof FeaturesRoute
   '/plans': typeof PlansRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/roles': typeof RolesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/invite/$token': typeof InviteTokenRoute
@@ -309,11 +372,17 @@ export interface FileRoutesById {
   '/_authenticated/platform/tenants': typeof AuthenticatedPlatformTenantsRoute
   '/_authenticated/student/$slug': typeof AuthenticatedStudentSlugRoute
   '/_authenticated/platform/': typeof AuthenticatedPlatformIndexRoute
+  '/_authenticated/student/': typeof AuthenticatedStudentIndexRoute
+  '/_authenticated/app/$slug/accounts': typeof AuthenticatedAppSlugAccountsRoute
+  '/_authenticated/app/$slug/circle-report': typeof AuthenticatedAppSlugCircleReportRoute
   '/_authenticated/app/$slug/circles': typeof AuthenticatedAppSlugCirclesRoute
+  '/_authenticated/app/$slug/links': typeof AuthenticatedAppSlugLinksRoute
+  '/_authenticated/app/$slug/management': typeof AuthenticatedAppSlugManagementRoute
   '/_authenticated/app/$slug/progress': typeof AuthenticatedAppSlugProgressRoute
   '/_authenticated/app/$slug/records': typeof AuthenticatedAppSlugRecordsRoute
   '/_authenticated/app/$slug/reports': typeof AuthenticatedAppSlugReportsRoute
   '/_authenticated/app/$slug/settings': typeof AuthenticatedAppSlugSettingsRoute
+  '/_authenticated/app/$slug/stats': typeof AuthenticatedAppSlugStatsRoute
   '/_authenticated/app/$slug/students': typeof AuthenticatedAppSlugStudentsRouteWithChildren
   '/_authenticated/app/$slug/subscription': typeof AuthenticatedAppSlugSubscriptionRoute
   '/_authenticated/app/$slug/tracks': typeof AuthenticatedAppSlugTracksRoute
@@ -331,6 +400,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/features'
     | '/plans'
+    | '/reset-password'
     | '/roles'
     | '/dashboard'
     | '/invite/$token'
@@ -344,11 +414,17 @@ export interface FileRouteTypes {
     | '/platform/tenants'
     | '/student/$slug'
     | '/platform/'
+    | '/student/'
+    | '/app/$slug/accounts'
+    | '/app/$slug/circle-report'
     | '/app/$slug/circles'
+    | '/app/$slug/links'
+    | '/app/$slug/management'
     | '/app/$slug/progress'
     | '/app/$slug/records'
     | '/app/$slug/reports'
     | '/app/$slug/settings'
+    | '/app/$slug/stats'
     | '/app/$slug/students'
     | '/app/$slug/subscription'
     | '/app/$slug/tracks'
@@ -364,6 +440,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/features'
     | '/plans'
+    | '/reset-password'
     | '/roles'
     | '/dashboard'
     | '/invite/$token'
@@ -377,11 +454,17 @@ export interface FileRouteTypes {
     | '/platform/tenants'
     | '/student/$slug'
     | '/platform'
+    | '/student'
+    | '/app/$slug/accounts'
+    | '/app/$slug/circle-report'
     | '/app/$slug/circles'
+    | '/app/$slug/links'
+    | '/app/$slug/management'
     | '/app/$slug/progress'
     | '/app/$slug/records'
     | '/app/$slug/reports'
     | '/app/$slug/settings'
+    | '/app/$slug/stats'
     | '/app/$slug/students'
     | '/app/$slug/subscription'
     | '/app/$slug/tracks'
@@ -398,6 +481,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/features'
     | '/plans'
+    | '/reset-password'
     | '/roles'
     | '/_authenticated/dashboard'
     | '/invite/$token'
@@ -411,11 +495,17 @@ export interface FileRouteTypes {
     | '/_authenticated/platform/tenants'
     | '/_authenticated/student/$slug'
     | '/_authenticated/platform/'
+    | '/_authenticated/student/'
+    | '/_authenticated/app/$slug/accounts'
+    | '/_authenticated/app/$slug/circle-report'
     | '/_authenticated/app/$slug/circles'
+    | '/_authenticated/app/$slug/links'
+    | '/_authenticated/app/$slug/management'
     | '/_authenticated/app/$slug/progress'
     | '/_authenticated/app/$slug/records'
     | '/_authenticated/app/$slug/reports'
     | '/_authenticated/app/$slug/settings'
+    | '/_authenticated/app/$slug/stats'
     | '/_authenticated/app/$slug/students'
     | '/_authenticated/app/$slug/subscription'
     | '/_authenticated/app/$slug/tracks'
@@ -433,6 +523,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   FeaturesRoute: typeof FeaturesRoute
   PlansRoute: typeof PlansRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   RolesRoute: typeof RolesRoute
   InviteTokenRoute: typeof InviteTokenRoute
   MSlugRoute: typeof MSlugRoute
@@ -490,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/plans'
       fullPath: '/plans'
       preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/roles': {
@@ -576,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformTenantsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/student/': {
+      id: '/_authenticated/student/'
+      path: '/student'
+      fullPath: '/student/'
+      preLoaderRoute: typeof AuthenticatedStudentIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/student/$slug': {
       id: '/_authenticated/student/$slug'
       path: '/student/$slug'
@@ -590,11 +695,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSlugIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/$slug/accounts': {
+      id: '/_authenticated/app/$slug/accounts'
+      path: '/app/$slug/accounts'
+      fullPath: '/app/$slug/accounts'
+      preLoaderRoute: typeof AuthenticatedAppSlugAccountsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/circle-report': {
+      id: '/_authenticated/app/$slug/circle-report'
+      path: '/app/$slug/circle-report'
+      fullPath: '/app/$slug/circle-report'
+      preLoaderRoute: typeof AuthenticatedAppSlugCircleReportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/app/$slug/circles': {
       id: '/_authenticated/app/$slug/circles'
       path: '/app/$slug/circles'
       fullPath: '/app/$slug/circles'
       preLoaderRoute: typeof AuthenticatedAppSlugCirclesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/links': {
+      id: '/_authenticated/app/$slug/links'
+      path: '/app/$slug/links'
+      fullPath: '/app/$slug/links'
+      preLoaderRoute: typeof AuthenticatedAppSlugLinksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/management': {
+      id: '/_authenticated/app/$slug/management'
+      path: '/app/$slug/management'
+      fullPath: '/app/$slug/management'
+      preLoaderRoute: typeof AuthenticatedAppSlugManagementRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app/$slug/progress': {
@@ -623,6 +756,13 @@ declare module '@tanstack/react-router' {
       path: '/app/$slug/settings'
       fullPath: '/app/$slug/settings'
       preLoaderRoute: typeof AuthenticatedAppSlugSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/app/$slug/stats': {
+      id: '/_authenticated/app/$slug/stats'
+      path: '/app/$slug/stats'
+      fullPath: '/app/$slug/stats'
+      preLoaderRoute: typeof AuthenticatedAppSlugStatsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/app/$slug/students': {
@@ -694,11 +834,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformTenantsRoute: typeof AuthenticatedPlatformTenantsRoute
   AuthenticatedStudentSlugRoute: typeof AuthenticatedStudentSlugRoute
   AuthenticatedPlatformIndexRoute: typeof AuthenticatedPlatformIndexRoute
+  AuthenticatedStudentIndexRoute: typeof AuthenticatedStudentIndexRoute
+  AuthenticatedAppSlugAccountsRoute: typeof AuthenticatedAppSlugAccountsRoute
+  AuthenticatedAppSlugCircleReportRoute: typeof AuthenticatedAppSlugCircleReportRoute
   AuthenticatedAppSlugCirclesRoute: typeof AuthenticatedAppSlugCirclesRoute
+  AuthenticatedAppSlugLinksRoute: typeof AuthenticatedAppSlugLinksRoute
+  AuthenticatedAppSlugManagementRoute: typeof AuthenticatedAppSlugManagementRoute
   AuthenticatedAppSlugProgressRoute: typeof AuthenticatedAppSlugProgressRoute
   AuthenticatedAppSlugRecordsRoute: typeof AuthenticatedAppSlugRecordsRoute
   AuthenticatedAppSlugReportsRoute: typeof AuthenticatedAppSlugReportsRoute
   AuthenticatedAppSlugSettingsRoute: typeof AuthenticatedAppSlugSettingsRoute
+  AuthenticatedAppSlugStatsRoute: typeof AuthenticatedAppSlugStatsRoute
   AuthenticatedAppSlugStudentsRoute: typeof AuthenticatedAppSlugStudentsRouteWithChildren
   AuthenticatedAppSlugSubscriptionRoute: typeof AuthenticatedAppSlugSubscriptionRoute
   AuthenticatedAppSlugTracksRoute: typeof AuthenticatedAppSlugTracksRoute
@@ -715,11 +861,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformTenantsRoute: AuthenticatedPlatformTenantsRoute,
   AuthenticatedStudentSlugRoute: AuthenticatedStudentSlugRoute,
   AuthenticatedPlatformIndexRoute: AuthenticatedPlatformIndexRoute,
+  AuthenticatedStudentIndexRoute: AuthenticatedStudentIndexRoute,
+  AuthenticatedAppSlugAccountsRoute: AuthenticatedAppSlugAccountsRoute,
+  AuthenticatedAppSlugCircleReportRoute: AuthenticatedAppSlugCircleReportRoute,
   AuthenticatedAppSlugCirclesRoute: AuthenticatedAppSlugCirclesRoute,
+  AuthenticatedAppSlugLinksRoute: AuthenticatedAppSlugLinksRoute,
+  AuthenticatedAppSlugManagementRoute: AuthenticatedAppSlugManagementRoute,
   AuthenticatedAppSlugProgressRoute: AuthenticatedAppSlugProgressRoute,
   AuthenticatedAppSlugRecordsRoute: AuthenticatedAppSlugRecordsRoute,
   AuthenticatedAppSlugReportsRoute: AuthenticatedAppSlugReportsRoute,
   AuthenticatedAppSlugSettingsRoute: AuthenticatedAppSlugSettingsRoute,
+  AuthenticatedAppSlugStatsRoute: AuthenticatedAppSlugStatsRoute,
   AuthenticatedAppSlugStudentsRoute:
     AuthenticatedAppSlugStudentsRouteWithChildren,
   AuthenticatedAppSlugSubscriptionRoute: AuthenticatedAppSlugSubscriptionRoute,
@@ -739,6 +891,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   FeaturesRoute: FeaturesRoute,
   PlansRoute: PlansRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   RolesRoute: RolesRoute,
   InviteTokenRoute: InviteTokenRoute,
   MSlugRoute: MSlugRoute,

@@ -13,7 +13,7 @@ const messageSchema = z.object({
  */
 export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z
       .object({
         slug: z.string().min(1).max(120).nullable().optional(),

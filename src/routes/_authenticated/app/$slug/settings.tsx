@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { toast } from "sonner";
-import { Loader2, Upload, Palette, Eye, HeartHandshake } from "lucide-react";
+import { Loader2, Upload, Palette, Eye, HeartHandshake, FileText, Plus, Trash2, ArrowUp, ArrowDown } from "lucide-react";
 import { ThemePreview } from "@/components/ThemePreview";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/layout/AppShell";
@@ -21,6 +21,16 @@ import { TENANT_LOGOS_BUCKET, useTenantLogo } from "@/lib/tenant-branding";
 import { PROGRESS_MODE_OPTIONS } from "@/lib/progress";
 import { COLOR_PALETTES, PASTEL_COLOR_PALETTES } from "@/lib/color-palettes";
 import type { TenantProgressMode } from "@/lib/types";
+import {
+  PUBLIC_PAGE_LIMITS,
+  PUBLIC_PAGE_SHADE_OPTIONS,
+  emptyPublicPageContent,
+  newPublicPageBlock,
+  parsePublicPageContent,
+  resolveShadeStyle,
+  withPublicPageContent,
+  type PublicPageContent,
+} from "@/lib/public-page";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/settings")({
   component: TenantBrandingPage,
@@ -44,6 +54,7 @@ type TenantSettingsRow = {
   students_mode: "records" | "accounts";
   progress_entry_mode: TenantProgressMode;
   status: string;
+  settings: unknown;
 };
 
 function TenantBrandingPage() {
@@ -58,7 +69,7 @@ function TenantBrandingPage() {
       const { data, error } = await supabase
         .from("tenants")
         .select(
-          "id, name, slug, custom_domain, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, volunteering_open, students_mode, progress_entry_mode, status",
+          "id, name, slug, custom_domain, logo_url, primary_color, accent_color, short_description, contact_email, contact_phone, registration_open, volunteering_open, students_mode, progress_entry_mode, status, settings",
         )
         .eq("slug", slug)
         .maybeSingle() as { data: TenantSettingsRow | null; error: Error | null };
@@ -80,6 +91,7 @@ function TenantBrandingPage() {
   const [studentsMode, setStudentsMode] = useState<"records" | "accounts">("records");
   const [progressMode, setProgressMode] = useState<TenantProgressMode>("both");
   const [uploading, setUploading] = useState(false);
+  const [publicPage, setPublicPage] = useState<PublicPageContent>(emptyPublicPageContent());
 
   useEffect(() => {
     if (!tenant) return;
@@ -89,6 +101,7 @@ function TenantBrandingPage() {
     setVolunteering(tenant.volunteering_open ?? false);
     setStudentsMode(tenant.students_mode === "accounts" ? "accounts" : "records");
     setProgressMode(tenant.progress_entry_mode ?? "both");
+    setPublicPage(parsePublicPageContent(tenant.settings));
   }, [tenant]);
 
   useTenantTheme(primary, accent);
@@ -178,6 +191,11 @@ function TenantBrandingPage() {
       volunteering_open: volunteering,
       students_mode: studentsMode,
       progress_entry_mode: progressMode,
+      // محتوى الصفحة التعريفية يُرسل فقط لو الميزة مفعّلة، بنفس منطق
+      // الألوان أعلاه — وإلا يبقى المخزّن بالقاعدة كما هو.
+      ...(hasFeature("public_page")
+        ? { settings: withPublicPageContent(tenant?.settings, publicPage) as any }
+        : {}),
       ...(isPlatformOwner
         ? {
             slug: String(fd.get("slug") ?? "").trim().toLowerCase(),
@@ -192,7 +210,7 @@ function TenantBrandingPage() {
       brandName={tenant.name}
       brandSubtitle="هوية المقرأة"
       logoUrl={logoUrl}
-      nav={visibleTenantNav(slug, hasFeature)}
+      nav={visibleTenantNav(slug, hasFeature, canEdit)}
       title="هوية المقرأة"
       crumbs={[{ label: tenant.name }, { label: "هوية المقرأة" }]}
     >
@@ -350,6 +368,155 @@ function TenantBrandingPage() {
               ))}
             </div>
           </div>
+          <div className="space-y-3 rounded-xl border border-border p-4">
+            <div className="flex items-center gap-2">
+              <FileText className="size-4 text-primary" />
+              <Label className="text-sm font-medium">الصفحة التعريفية</Label>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              فقرة تعريفية وأقسام حرة (عنوان + نص) تظهرين بها مقرأتكم لزائرات الرابط{" "}
+              <span dir="ltr">/m/{tenant.slug}</span>، بترتيب تحددينه أنتِ.
+            </p>
+            {!hasFeature("public_page") ? (
+              <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+                الصفحة التعريفية غير متاحة لباقتكم الحالية. راسلينا لترقية الباقة.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="public_intro">فقرة تعريفية مختصرة</Label>
+                  <Textarea
+                    id="public_intro"
+                    rows={3}
+                    maxLength={PUBLIC_PAGE_LIMITS.maxIntro}
+                    value={publicPage.intro}
+                    onChange={(e) => setPublicPage((p) => ({ ...p, intro: e.target.value }))}
+                    placeholder="مثال: مقرأتنا تستقبل الطالبات من عمر ٧ سنوات فأكثر، بمسارات حفظ ومراجعة أسبوعية..."
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  {publicPage.blocks.map((block, i) => (
+                    <div key={block.id} className="space-y-2 rounded-lg border border-border p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-medium text-muted-foreground">قسم {i + 1}</span>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={i === 0}
+                            onClick={() =>
+                              setPublicPage((p) => {
+                                const blocks = [...p.blocks];
+                                [blocks[i - 1], blocks[i]] = [blocks[i]!, blocks[i - 1]!];
+                                return { ...p, blocks };
+                              })
+                            }
+                            aria-label="نقل لأعلى"
+                          >
+                            <ArrowUp className="size-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            disabled={i === publicPage.blocks.length - 1}
+                            onClick={() =>
+                              setPublicPage((p) => {
+                                const blocks = [...p.blocks];
+                                [blocks[i], blocks[i + 1]] = [blocks[i + 1]!, blocks[i]!];
+                                return { ...p, blocks };
+                              })
+                            }
+                            aria-label="نقل لأسفل"
+                          >
+                            <ArrowDown className="size-4" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() =>
+                              setPublicPage((p) => ({ ...p, blocks: p.blocks.filter((b) => b.id !== block.id) }))
+                            }
+                            aria-label="حذف القسم"
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                      <Input
+                        value={block.title}
+                        maxLength={PUBLIC_PAGE_LIMITS.maxTitle}
+                        placeholder="عنوان القسم — مثال: مسارات الحفظ"
+                        onChange={(e) =>
+                          setPublicPage((p) => ({
+                            ...p,
+                            blocks: p.blocks.map((b) => (b.id === block.id ? { ...b, title: e.target.value } : b)),
+                          }))
+                        }
+                      />
+                      <Textarea
+                        rows={3}
+                        value={block.body}
+                        maxLength={PUBLIC_PAGE_LIMITS.maxBody}
+                        placeholder="نص القسم"
+                        onChange={(e) =>
+                          setPublicPage((p) => ({
+                            ...p,
+                            blocks: p.blocks.map((b) => (b.id === block.id ? { ...b, body: e.target.value } : b)),
+                          }))
+                        }
+                      />
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-xs text-muted-foreground">لون القسم:</span>
+                        {PUBLIC_PAGE_SHADE_OPTIONS.map((opt) => {
+                          const style = resolveShadeStyle(opt.id, primary, accent);
+                          const active = block.shade === opt.id;
+                          return (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() =>
+                                setPublicPage((p) => ({
+                                  ...p,
+                                  blocks: p.blocks.map((b) => (b.id === block.id ? { ...b, shade: opt.id } : b)),
+                                }))
+                              }
+                              className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${
+                                active ? "border-primary ring-1 ring-primary" : "border-border"
+                              }`}
+                              style={
+                                style
+                                  ? { backgroundColor: style.background, color: style.foreground, borderColor: style.border }
+                                  : undefined
+                              }
+                              aria-pressed={active}
+                            >
+                              {opt.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={publicPage.blocks.length >= PUBLIC_PAGE_LIMITS.maxBlocks}
+                  onClick={() => setPublicPage((p) => ({ ...p, blocks: [...p.blocks, newPublicPageBlock()] }))}
+                >
+                  <Plus className="size-4" />
+                  إضافة قسم
+                </Button>
+              </div>
+            )}
+          </div>
+
           <Button type="submit" disabled={save.isPending}>
             {save.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
             حفظ التغييرات
@@ -367,6 +534,49 @@ function TenantBrandingPage() {
             </p>
             <ThemePreview name={tenant.name} logo={tenant.logo_url} primary={primary} accent={accent} />
           </div>
+
+          {hasFeature("public_page") && (publicPage.intro || publicPage.blocks.some((b) => b.title || b.body)) ? (
+            <div className="surface-panel space-y-3 p-6">
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold">
+                <FileText className="size-4 text-primary" />
+                معاينة الصفحة التعريفية
+              </h2>
+              <div className="space-y-3 rounded-xl border border-border p-4 text-right">
+                {publicPage.intro ? (
+                  <p className="text-sm leading-relaxed text-muted-foreground">{publicPage.intro}</p>
+                ) : null}
+                {publicPage.blocks.map((b) => {
+                  if (!b.title && !b.body) return null;
+                  const style = resolveShadeStyle(b.shade, primary, accent);
+                  return (
+                    <div
+                      key={b.id}
+                      className="rounded-lg border-t border-border pt-3 first:border-t-0 first:pt-0"
+                      style={
+                        style
+                          ? { backgroundColor: style.background, color: style.foreground, borderColor: style.border, padding: "0.75rem" }
+                          : undefined
+                      }
+                    >
+                      {b.title ? (
+                        <p className="font-display text-sm font-bold" style={style ? { color: style.foreground } : undefined}>
+                          {b.title}
+                        </p>
+                      ) : null}
+                      {b.body ? (
+                        <p
+                          className="mt-1 whitespace-pre-line text-xs leading-relaxed text-muted-foreground"
+                          style={style ? { color: style.foreground, opacity: 0.9 } : undefined}
+                        >
+                          {b.body}
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           <div className="surface-panel space-y-3 p-6">
             <h2 className="flex items-center gap-2 font-display text-lg font-bold">

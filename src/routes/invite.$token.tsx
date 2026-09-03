@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { ROLE_LABELS } from "@/lib/roles";
 import { getInvitation, acceptInvitation } from "@/lib/invitations.functions";
 
+
 export const Route = createFileRoute("/invite/$token")({
   head: () => ({
     meta: [
@@ -31,7 +32,7 @@ const REASONS: Record<string, string> = {
 
 function InvitePage() {
   const { token } = Route.useParams();
-  const { user, loading, refresh } = useAuth();
+  const { user, loading, refresh, signOut } = useAuth();
   const navigate = useNavigate();
   const fetchInvite = useServerFn(getInvitation);
   const accept = useServerFn(acceptInvitation);
@@ -82,25 +83,27 @@ function InvitePage() {
             </p>
 
             {user ? (
-              user.email?.toLowerCase() === invite.email.toLowerCase() ? (
+              <>
+                <p className="mt-6 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  أنت مسجّلة الدخول بالبريد <span dir="ltr">{user.email}</span> — يمكنك قبول الدعوة بهذا الحساب.
+                </p>
                 <Button
-                  className="mt-6 w-full"
+                  className="mt-4 w-full"
                   onClick={() => acceptMutation.mutate()}
                   disabled={acceptMutation.isPending}
                 >
                   {acceptMutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "قبول الدعوة"}
                 </Button>
-              ) : (
-                <p className="mt-6 rounded-xl bg-muted px-4 py-3 text-sm text-muted-foreground">
-                  أنت مسجّلة الدخول ببريد مختلف (<span dir="ltr">{user.email}</span>). سجّلي الخروج ثم ادخلي بالبريد
-                  المدعو.
-                </p>
-              )
+                <Button variant="ghost" className="mt-2 w-full" onClick={() => void signOut()}>
+                  تسجيل الخروج والدخول بحساب آخر
+                </Button>
+              </>
             ) : (
               <>
                 <p className="mt-6 text-sm text-muted-foreground">
-                  سجّلي الدخول أو أنشئي حسابًا بنفس البريد أعلاه لقبول الدعوة.
+                  سجّلي الدخول أو أنشئي حسابًا لقبول الدعوة (الرابط صالح لمدة ربع ساعة).
                 </p>
+
                 <Button asChild className="mt-4 w-full">
                   <Link to="/auth" search={{ next: `/invite/${token}` }}>
                     الدخول / إنشاء حساب

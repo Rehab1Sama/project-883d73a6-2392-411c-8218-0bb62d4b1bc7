@@ -296,6 +296,7 @@ $$;
 
 -- ---------------- tracks ----------------
 drop policy if exists "tracks_manager_write" on public.tracks;
+drop policy if exists "tracks_scoped_write" on public.tracks;
 create policy "tracks_scoped_write" on public.tracks
   for all to authenticated
   using (public.can_manage_track(auth.uid(), id))
@@ -305,46 +306,55 @@ create policy "tracks_scoped_write" on public.tracks
 
 -- ---------------- circles ----------------
 drop policy if exists "circles_member_read" on public.circles;
+drop policy if exists "circles_scoped_read" on public.circles;
 create policy "circles_scoped_read" on public.circles
   for select to authenticated
   using (public.can_view_circle(auth.uid(), id));
 
 drop policy if exists "circles_manager_write" on public.circles;
+drop policy if exists "circles_scoped_update_delete" on public.circles;
 create policy "circles_scoped_update_delete" on public.circles
   for update to authenticated
   using (public.can_manage_circle(auth.uid(), id))
   with check (public.can_manage_circles_in_track(auth.uid(), tenant_id, track_id));
 
+drop policy if exists "circles_scoped_delete" on public.circles;
 create policy "circles_scoped_delete" on public.circles
   for delete to authenticated
   using (public.can_manage_circle(auth.uid(), id));
 
+drop policy if exists "circles_scoped_insert" on public.circles;
 create policy "circles_scoped_insert" on public.circles
   for insert to authenticated
   with check (public.can_manage_circles_in_track(auth.uid(), tenant_id, track_id));
 
 -- ---------------- students ----------------
 drop policy if exists "students_member_read" on public.students;
+drop policy if exists "students_scoped_read" on public.students;
 create policy "students_scoped_read" on public.students
   for select to authenticated
   using (public.can_view_student(auth.uid(), id));
 
 drop policy if exists "students_manager_write" on public.students;
+drop policy if exists "students_scoped_insert" on public.students;
 create policy "students_scoped_insert" on public.students
   for insert to authenticated
   with check (public.can_create_student(auth.uid(), tenant_id));
 
+drop policy if exists "students_scoped_update" on public.students;
 create policy "students_scoped_update" on public.students
   for update to authenticated
   using (public.can_manage_student(auth.uid(), id))
   with check (public.can_manage_student(auth.uid(), id));
 
+drop policy if exists "students_scoped_delete" on public.students;
 create policy "students_scoped_delete" on public.students
   for delete to authenticated
   using (public.can_manage_student(auth.uid(), id));
 
 -- ---------------- circle_students ----------------
 drop policy if exists "circle_students_manager_write" on public.circle_students;
+drop policy if exists "circle_students_scoped_write" on public.circle_students;
 create policy "circle_students_scoped_write" on public.circle_students
   for all to authenticated
   using (public.can_manage_circle(auth.uid(), circle_id))
@@ -353,17 +363,20 @@ create policy "circle_students_scoped_write" on public.circle_students
 -- المقرأة)؛ عدّليها لاحقاً لاستخدام can_view_circle إن أردتِ تقييد
 -- القراءة أيضاً على مستوى الحلقة/التسجيلات.
 drop policy if exists "circle_students_member_read" on public.circle_students;
+drop policy if exists "circle_students_scoped_read" on public.circle_students;
 create policy "circle_students_scoped_read" on public.circle_students
   for select to authenticated
   using (public.can_view_circle(auth.uid(), circle_id));
 
 -- ---------------- attendance ----------------
 drop policy if exists "attendance_member_read" on public.attendance;
+drop policy if exists "attendance_scoped_read" on public.attendance;
 create policy "attendance_scoped_read" on public.attendance
   for select to authenticated
   using (public.can_view_circle(auth.uid(), circle_id));
 
 drop policy if exists "attendance_recorder_write" on public.attendance;
+drop policy if exists "attendance_scoped_write" on public.attendance;
 create policy "attendance_scoped_write" on public.attendance
   for all to authenticated
   using (public.can_manage_circle_entries(auth.uid(), tenant_id, circle_id))
@@ -371,6 +384,7 @@ create policy "attendance_scoped_write" on public.attendance
 
 -- ---------------- progress_records ----------------
 drop policy if exists "progress_records_member_read" on public.progress_records;
+drop policy if exists "progress_records_scoped_read" on public.progress_records;
 create policy "progress_records_scoped_read" on public.progress_records
   for select to authenticated
   using (
@@ -379,6 +393,7 @@ create policy "progress_records_scoped_read" on public.progress_records
   );
 
 drop policy if exists "progress_records_recorder_write" on public.progress_records;
+drop policy if exists "progress_records_scoped_write" on public.progress_records;
 create policy "progress_records_scoped_write" on public.progress_records
   for all to authenticated
   using (

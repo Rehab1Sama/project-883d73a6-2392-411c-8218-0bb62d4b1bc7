@@ -20,7 +20,7 @@ const contactSchema = z.object({
 
 /** طلب باقة من صفحة الأسعار — يُحفظ ثم يُرسل تنبيه بريدي فوري لمالكة المنصة */
 export const submitPlanRequest = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => planRequestSchema.parse(input))
+  .validator((input: unknown) => planRequestSchema.parse(input))
   .handler(async ({ data }) => {
     const { guardPublicRate } = await import("@/lib/rate-limit-guard.server");
     await guardPublicRate("plan_request", 5, 300);
@@ -73,7 +73,7 @@ export const submitPlanRequest = createServerFn({ method: "POST" })
 
 /** رسالة من صفحة تواصل معنا — تُحفظ ثم يُرسل تنبيه بريدي فوري */
 export const submitContactMessage = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => contactSchema.parse(input))
+  .validator((input: unknown) => contactSchema.parse(input))
   .handler(async ({ data }) => {
     const { guardPublicRate } = await import("@/lib/rate-limit-guard.server");
     await guardPublicRate("contact_message", 5, 300);

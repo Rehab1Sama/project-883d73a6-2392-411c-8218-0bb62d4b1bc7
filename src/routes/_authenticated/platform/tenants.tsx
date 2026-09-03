@@ -3,7 +3,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Plus, Search, ExternalLink, Loader2, Settings2 } from "lucide-react";
+import { Plus, Search, ExternalLink, Loader2, Settings2, UserPlus } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { linkExistingUserToTenant } from "@/lib/invitations.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { AppShell } from "@/components/layout/AppShell";
@@ -295,6 +297,7 @@ function TenantsPage() {
                 <TableHead className="text-right">استهلاك الباقة</TableHead>
                 <TableHead className="text-right">الميزات</TableHead>
                 <TableHead className="text-right">الهوية</TableHead>
+                <TableHead className="text-right">ربط قائدة</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -370,6 +373,9 @@ function TenantsPage() {
                         </Link>
                       </Button>
                     </TableCell>
+                    <TableCell>
+                      <LinkLeaderDialog tenantId={t.id} tenantName={t.name} />
+                    </TableCell>
                   </TableRow>
                 );
               })}
@@ -378,5 +384,56 @@ function TenantsPage() {
         </div>
       )}
     </AppShell>
+  );
+}
+
+function LinkLeaderDialog({ tenantId, tenantName }: { tenantId: string; tenantName: string }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const link = useServerFn(linkExistingUserToTenant);
+
+  const mutation = useMutation({
+    mutationFn: () => link({ data: { tenantId, email, role: "tenant_admin" as const } }),
+    onSuccess: (res) => {
+      toast.success(`تم ربط ${res.name} بمقرأة ${tenantName} كمديرة`);
+      setEmail("");
+      setOpen(false);
+    },
+    onError: (e: Error) => toast.error(e.message || "تعذّر الربط"),
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <UserPlus className="size-4" />
+          ربط يدوي
+        </Button>
+      </DialogTrigger>
+      <DialogContent dir="rtl">
+        <DialogHeader>
+          <DialogTitle>ربط قائدة بمقرأة {tenantName}</DialogTitle>
+          <DialogDescription>
+            أدخلي بريد حسابها المسجّل في المنصة، وسيُمنح الحساب صلاحية مديرة المقرأة فورًا دون دعوة.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          <Label htmlFor={`link-email-${tenantId}`}>البريد الإلكتروني</Label>
+          <Input
+            id={`link-email-${tenantId}`}
+            dir="ltr"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="leader@example.com"
+          />
+        </div>
+        <DialogFooter>
+          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending || !email.includes("@")}>
+            {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : "ربط الحساب"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

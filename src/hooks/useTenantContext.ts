@@ -21,20 +21,35 @@ export type TenantContext = {
   canRead: boolean;
   /** إدارة عامة على مستوى المقرأة (قائدة/نائبة إدارية/مالكة المنصة) */
   canManage: boolean;
-  /** لديها نطاق نائبة أكاديمية واحد على الأقل (كامل المقرأة أو مسار محدد) */
+  /** لديها دور نائبة أكاديمية (بغض النظر عن وجود مسار مسنَد لها أم لا) */
   isAcademicDeputy: boolean;
-  /** null تعني: مسؤولة عن كل المسارات. مصفوفة فارغة تعني: ليست نائبة أكاديمية إطلاقاً */
-  myTrackScopes: string[] | null;
-  /** null تعني: مرتبطة بكل الحلقات (أو ليست معلمة/مشرفة مقيّدة) */
-  myCircleScopes: string[] | null;
+  /**
+   * قائمة المسارات المسندة لها فعليًا كنائبة أكاديمية. مصفوفة فارغة تعني:
+   * إما ليست نائبة أكاديمية، أو نائبة أكاديمية بلا مسار مسنَد بعد — وفي
+   * الحالتين لا تُدير ولا ترى أي مسار/حلقة حتى تُقيَّد بمسار محدد.
+   * ⚠️ لا يوجد هنا "نطاق كامل" ضمني: عدم التقييد = بلا صلاحية، وليس العكس.
+   */
+  myTrackScopes: string[];
+  /**
+   * قائمة الحلقات المسندة لها فعليًا كمعلمة/مشرفة. مصفوفة فارغة تعني:
+   * إما ليست معلمة/مشرفة، أو معلمة/مشرفة بلا حلقة مسندة بعد — وفي
+   * الحالتين لا ترى أي حلقة حتى تُقيَّد بحلقة محددة.
+   */
+  myCircleScopes: string[];
   /** هل تستطيع إدارة (إضافة/تعديل/حذف) هذا المسار / حلقة تابعة له؟ */
   canManageTrack: (trackId: string | null | undefined) => boolean;
-  /** هل تستطيع رؤية هذه الحلقة تحديداً؟ (معلمة/مشرفة مقيّدة) */
-  canViewCircleById: (circleId: string | null | undefined) => boolean;
+  /** هل تستطيع رؤية هذه الحلقة تحديداً؟ (بحسب نطاقها: قيادة/نائبة أكاديمية لمسارها/معلمة أو مشرفة لحلقتها) */
+  canViewCircle: (circle: { id: string; track_id?: string | null }) => boolean;
   /** هل تستطيع تسجيل الأنصبة/التقدم/الحضور لهذه الحلقة تحديداً؟ */
   canRecordForCircle: (circleId: string | null | undefined) => boolean;
   /** هل تستطيع إدارة (إضافة/تعديل/حذف) طالبة تنتمي إلى هذه المسارات (إن عُرفت)؟ */
   canManageStudentInTracks: (studentTrackIds: string[]) => boolean;
+  /**
+   * معلمة/مشرفة مقصورة على حلقتها فقط (ليست قيادة ولا نائبة أكاديمية ولا
+   * مالكة منصة) — تُستخدم لتقليص القائمة الجانبية إلى صفحة حلقتها ورفع
+   * الأنصبة فقط.
+   */
+  isCircleScopedOnly: boolean;
   /** هل تستطيع إدخال الأنصبة/التقدم/الحضور وفق إعداد المقرأة (على أي حلقة مسموح بها)؟ */
   canRecord: boolean;
   /**
@@ -54,14 +69,17 @@ export type TenantContext = {
  *
  * مستويات الصلاحية:
  *  - القيادة (tenant_admin / admin_deputy) ومالكة المنصة: كل شيء، بلا قيود.
- *  - نائبة أكاديمية (academic_deputy): كل شيء، لكن مقيّد بمسارها إن حُدّد
- *    لها مسار من صفحة المتطوعات (myTrackScopes). بلا مسار محدد = كل
- *    المقرأة.
- *  - معلمة / مشرفة: قراءة فقط لحلقتها المحددة (myCircleScopes)، وإدخال
- *    الأنصبة/التقدم/الحضور لهذه الحلقة فقط، وبحسب إعداد progress_entry_mode.
+ *  - نائبة أكاديمية (academic_deputy): فقط المسار/المسارات المسنَدة لها
+ *    صراحة عبر track_id من صفحة المتطوعات (myTrackScopes). بلا مسار
+ *    مسنَد = بلا صلاحية إطلاقًا (لا رؤية ولا إدارة)، وليس العكس.
+ *  - معلمة / مشرفة: فقط حلقتها/حلقاتها المسنَدة لها صراحة عبر circle_id
+ *    (myCircleScopes). بلا حلقة مسنَدة = بلا صلاحية إطلاقًا. القراءة
+ *    والإدخال (أنصبة/تقدم/حضور) مقصوران على حلقتها، وبحسب إعداد
+ *    progress_entry_mode.
  *
  * ⚠️ هذه القيم للعرض في الواجهة فقط (إخفاء/إظهار أزرار). التطبيق الفعلي
- * والملزم للصلاحيات يتم عبر سياسات RLS في supabase/migration_scoped_permissions.sql.
+ * والملزم للصلاحيات يتم عبر سياسات RLS — انظري
+ * supabase/migrations/20260902000000_scope_academic_and_teacher_access.sql.
  */
 export function useTenantContext(): TenantContext {
   const params = useParams({ strict: false });
@@ -97,37 +115,29 @@ export function useTenantContext(): TenantContext {
 
   const academicRows = myRoleRows.filter((r) => r.role === "academic_deputy");
   const isAcademicDeputy = academicRows.length > 0;
-  // null = بلا قيد مسار (نطاق كامل المقرأة)؛ وإلا قائمة المسارات المسندة إليها
-  const myTrackScopes: string[] | null = isAcademicDeputy
-    ? academicRows.some((r) => !r.track_id)
-      ? null
-      : (academicRows.map((r) => r.track_id).filter(Boolean) as string[])
-    : [];
+  // ⚠️ لا يوجد "نطاق كامل" ضمني هنا. فقط الصفوف المقيَّدة فعليًا بمسار
+  // تمنح صلاحية. نائبة أكاديمية بلا مسار مسنَد = مصفوفة فارغة = بلا صلاحية
+  // إطلاقًا حتى تُقيَّد بمسار من صفحة المتطوعات.
+  const myTrackScopes: string[] = academicRows.map((r) => r.track_id).filter(Boolean) as string[];
 
   const teacherSupervisorRows = myRoleRows.filter((r) => r.role === "teacher" || r.role === "supervisor");
   const hasTeacherOrSupervisor = teacherSupervisorRows.length > 0;
-  const myCircleScopes: string[] | null = hasTeacherOrSupervisor
-    ? teacherSupervisorRows.some((r) => !r.circle_id)
-      ? null
-      : (teacherSupervisorRows.map((r) => r.circle_id).filter(Boolean) as string[])
-    : [];
+  // نفس المبدأ: فقط الصفوف المقيَّدة فعليًا بحلقة تمنح صلاحية رؤية.
+  const myCircleScopes: string[] = teacherSupervisorRows.map((r) => r.circle_id).filter(Boolean) as string[];
 
   const canManage = isPlatformOwner || myRoles.some(isManagerRole);
 
   function canManageTrack(trackId: string | null | undefined): boolean {
     if (isPlatformOwner || canManage) return true;
-    if (!isAcademicDeputy) return false;
-    if (myTrackScopes === null) return true; // نائبة أكاديمية بلا قيد
-    if (!trackId) return false;
+    if (!isAcademicDeputy || !trackId) return false;
     return myTrackScopes.includes(trackId);
   }
 
-  function canViewCircleById(circleId: string | null | undefined): boolean {
-    if (isPlatformOwner || canManage || isAcademicDeputy) return true;
-    if (!hasTeacherOrSupervisor) return false;
-    if (myCircleScopes === null) return true;
-    if (!circleId) return false;
-    return myCircleScopes.includes(circleId);
+  function canViewCircle(circle: { id: string; track_id?: string | null }): boolean {
+    if (isPlatformOwner || canManage) return true;
+    if (isAcademicDeputy && circle.track_id && myTrackScopes.includes(circle.track_id)) return true;
+    if (hasTeacherOrSupervisor && myCircleScopes.includes(circle.id)) return true;
+    return false;
   }
 
   const mode = tenant?.progress_entry_mode ?? "both";
@@ -140,15 +150,18 @@ export function useTenantContext(): TenantContext {
     (isTeacher && (mode === "teacher" || mode === "both")) ||
     (isSupervisor && (mode === "supervisor" || mode === "both"));
 
+  // ⚠️ نفس مبدأ عدم التقييد = بلا صلاحية: صف بلا circle_id لا يمنح تسجيلًا
+  // في أي حلقة، بل لا يمنح شيئًا حتى تُقيَّد المعلمة/المشرفة بحلقة محددة.
   function canRecordForCircle(circleId: string | null | undefined): boolean {
+    if (!circleId) return false;
     let allowed = false;
     if (isTeacher && (mode === "teacher" || mode === "both")) {
       const teacherRows = myRoleRows.filter((r) => r.role === "teacher");
-      allowed = allowed || teacherRows.some((r) => !r.circle_id || (!!circleId && r.circle_id === circleId));
+      allowed = allowed || teacherRows.some((r) => r.circle_id === circleId);
     }
     if (isSupervisor && (mode === "supervisor" || mode === "both")) {
       const supervisorRows = myRoleRows.filter((r) => r.role === "supervisor");
-      allowed = allowed || supervisorRows.some((r) => !r.circle_id || (!!circleId && r.circle_id === circleId));
+      allowed = allowed || supervisorRows.some((r) => r.circle_id === circleId);
     }
     return allowed;
   }
@@ -156,9 +169,8 @@ export function useTenantContext(): TenantContext {
   function canManageStudentInTracks(studentTrackIds: string[]): boolean {
     if (isPlatformOwner || canManage) return true;
     if (!isAcademicDeputy) return false;
-    if (myTrackScopes === null) return true;
-    if (studentTrackIds.length === 0) return true; // طالبة غير مسندة لأي حلقة بعد
-    return studentTrackIds.some((t) => myTrackScopes!.includes(t));
+    if (studentTrackIds.length === 0) return true; // طالبة غير مسندة لأي مسار بعد
+    return studentTrackIds.some((t) => myTrackScopes.includes(t));
   }
 
   return {
@@ -170,10 +182,11 @@ export function useTenantContext(): TenantContext {
     myTrackScopes,
     myCircleScopes,
     canManageTrack,
-    canViewCircleById,
+    canViewCircle,
     canRecordForCircle,
     canManageStudentInTracks,
     canRecord,
+    isCircleScopedOnly: !isPlatformOwner && !canManage && !isAcademicDeputy && hasTeacherOrSupervisor,
     hasFeature,
     featuresLoading: featuresQuery.isLoading,
     loading: loading || tenantQuery.isLoading,

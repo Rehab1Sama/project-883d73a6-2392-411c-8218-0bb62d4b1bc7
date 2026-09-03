@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useTenantTheme } from "@/hooks/useTenantTheme";
 import { useTenantLogo } from "@/lib/tenant-branding";
 import { VOLUNTEER_ROLES, type VolunteerRole } from "@/lib/volunteers";
+import { registerVolunteer } from "@/lib/volunteer-registration.functions";
 import { toast } from "sonner";
 
 type PublicTenantRow = {
@@ -28,13 +29,19 @@ type PublicTenantRow = {
 
 const schema = z.object({
   full_name: z.string().min(2, "الاسم الكامل مطلوب"),
-  email: z.string().email("البريد غير صالح").optional().or(z.literal("")),
+  email: z.string().email("البريد الإلكتروني مطلوب وبصيغة صحيحة"),
   phone: z.string().min(9, "رقم الجوال قصير").optional().or(z.literal("")),
   preferred_role: z.enum(["teacher", "supervisor", "academic_deputy", "admin_deputy"]),
   note: z.string().max(500, "ملاحظة طويلة").optional(),
 });
 
+const ROLE_KEYS = ["teacher", "supervisor", "academic_deputy", "admin_deputy"] as const;
+
 export const Route = createFileRoute("/v/$slug")({
+  validateSearch: (search: Record<string, unknown>): { role?: VolunteerRole } => {
+    const raw = typeof search["role"] === "string" ? (search["role"] as string) : "";
+    return ROLE_KEYS.includes(raw as VolunteerRole) ? { role: raw as VolunteerRole } : {};
+  },
   head: ({ params }) => ({
     meta: [
       { title: `تسجيل المتطوعات — مقرأة ${params.slug}` },
@@ -50,6 +57,7 @@ export const Route = createFileRoute("/v/$slug")({
 
 function VolunteerPublicPage() {
   const { slug } = useParams({ from: "/v/$slug" });
+  const { role: presetRole } = Route.useSearch();
   const [errors, setErrors] = useState<Partial<Record<"full_name" | "email" | "phone" | "note", string>>>({});
 
   const { data: tenant, isLoading } = useQuery({
@@ -73,7 +81,7 @@ function VolunteerPublicPage() {
       if (!tenant?.id) throw new Error("المقرأة غير موجودة");
       const raw = {
         full_name: String(formData.get("full_name") ?? "").trim(),
-        email: String(formData.get("email") ?? "").trim() || null,
+        email: String(formData.get("email") ?? "").trim(),
         phone: String(formData.get("phone") ?? "").trim() || null,
         preferred_role: String(formData.get("preferred_role") ?? "teacher") as VolunteerRole,
         note: String(formData.get("note") ?? "").trim() || null,
@@ -88,19 +96,23 @@ function VolunteerPublicPage() {
         throw new Error("يرجى تصحيح البيانات");
       }
       setErrors({});
-      const insert = {
-        tenant_id: tenant.id,
-        full_name: parsed.data.full_name,
-        email: parsed.data.email,
-        phone: parsed.data.phone,
-        preferred_role: parsed.data.preferred_role,
-        note: parsed.data.note,
-      };
-      const { error } = await (supabase as any).from("volunteer_applications").insert(insert);
-      if (error) throw error;
-      return { ok: true };
+      return await registerVolunteer({
+        data: {
+          slug,
+          full_name: parsed.data.full_name,
+          email: parsed.data.email,
+          phone: parsed.data.phone,
+          preferred_role: parsed.data.preferred_role,
+          note: parsed.data.note,
+        },
+      });
     },
-    onSuccess: () => toast.success("تم إرسال بياناتك، ستفعّل الإدارة عضويتك قريبًا"),
+    onSuccess: (res) =>
+      toast.success(
+        res.accountCreated
+          ? `تم اعتمادك كـ«${res.roleLabel}» وأُرسلت بيانات الدخول إلى بريدك`
+          : `تم اعتمادك كـ«${res.roleLabel}» — ادخلي بحسابك الحالي`,
+      ),
     onError: (err: Error) => toast.error(err.message || "تعذّر إرسال الطلب"),
   });
 
@@ -138,15 +150,17 @@ function VolunteerPublicPage() {
           )}
           <h1 className="mt-5 font-display text-3xl font-bold sm:text-4xl">{tenant.name}</h1>
           <p className="mx-auto mt-3 max-w-lg text-muted-foreground">
-            هذه الصفحة لمتطوعات المقرأة الحاليات: سجّلي بياناتك ودورك في المقرأة لتُفعَّل عضويتك في المنصة.
+            سجّلي بياناتك ودورك في المقرأة وستُعتمد عضويتك فورًا — تصلك بيانات الدخول على بريدك.
           </p>
         </div>
 
         {submit.isSuccess ? (
           <div className="surface-panel space-y-4 p-6 text-center">
             <HeartHandshake className="mx-auto size-10 text-primary" />
-            <h2 className="font-display text-xl font-bold">تم استلام تسجيلك بنجاح</h2>
-            <p className="text-sm text-muted-foreground">ستراجع إدارة المقرأة بياناتك وتُفعّل دورك في المنصة.</p>
+            <h2 className="font-display text-xl font-bold">تم اعتماد تسجيلك بنجاح</h2>
+            <p className="text-sm text-muted-foreground">
+              فُعِّل دورك مباشرة. إن كان هذا أول تسجيل لك فستصلك بيانات الدخول على بريدك الإلكتروني.
+            </p>
             <Button asChild variant="outline" className="w-full">
               <Link to="/m/$slug" params={{ slug: tenant.slug }}>
                 العودة لصفحة المقرأة
@@ -167,8 +181,8 @@ function VolunteerPublicPage() {
               {errors.full_name ? <p className="text-xs text-destructive">{errors.full_name}</p> : null}
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="email">البريد الإلكتروني (اختياري)</Label>
-              <Input id="email" name="email" type="email" dir="ltr" />
+              <Label htmlFor="email">البريد الإلكتروني (لتسجيل الدخول)</Label>
+              <Input id="email" name="email" type="email" dir="ltr" required />
               {errors.email ? <p className="text-xs text-destructive">{errors.email}</p> : null}
             </div>
             <div className="grid gap-1.5">
@@ -182,7 +196,7 @@ function VolunteerPublicPage() {
                 id="preferred_role"
                 name="preferred_role"
                 className="h-10 rounded-md border border-input bg-background px-3 text-sm"
-                defaultValue="teacher"
+                defaultValue={presetRole ?? "teacher"}
               >
                 {VOLUNTEER_ROLES.map((r) => (
                   <option key={r.value} value={r.value}>

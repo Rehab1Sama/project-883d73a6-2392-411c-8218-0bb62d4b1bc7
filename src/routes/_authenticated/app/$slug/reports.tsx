@@ -58,7 +58,7 @@ function daysAgoISO(n: number) {
 }
 
 function ReportsPage() {
-  const { tenant, canRead, loading, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canRead, canManage, loading, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
   const [period, setPeriod] = useState<string>("all");
   const [from, setFrom] = useState(daysAgoISO(30));
   const [to, setTo] = useState(todayISO());
@@ -255,7 +255,7 @@ function ReportsPage() {
         brandName={tenant.name}
         brandSubtitle="التقارير"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="التقارير"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "التقارير" }]}
       >
@@ -298,7 +298,7 @@ function ReportsPage() {
       brandName={tenant.name}
       brandSubtitle="التقارير والإحصائيات"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="التقارير والإحصائيات"
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "التقارير" }]}
       actions={
