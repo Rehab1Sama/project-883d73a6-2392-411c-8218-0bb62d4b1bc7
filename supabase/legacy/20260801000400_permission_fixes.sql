@@ -80,6 +80,7 @@ begin
 end;
 $$;
 
+drop policy if exists "roles_manage" on public.user_roles;
 create policy "roles_manage" on public.user_roles
   for all to authenticated
   using (public.can_manage_role_assignment(auth.uid(), tenant_id, role))
@@ -303,6 +304,7 @@ end;
 $$;
 
 drop trigger if exists students_enforce_limit on public.students;
+drop trigger if exists students_enforce_limit on public.students;
 create trigger students_enforce_limit
   before insert on public.students
   for each row execute function public.enforce_student_limit();
@@ -322,6 +324,7 @@ begin
 end;
 $$;
 
+drop trigger if exists circles_enforce_limit on public.circles;
 drop trigger if exists circles_enforce_limit on public.circles;
 create trigger circles_enforce_limit
   before insert on public.circles
@@ -344,6 +347,7 @@ begin
 end;
 $$;
 
+drop trigger if exists user_roles_enforce_teacher_limit on public.user_roles;
 drop trigger if exists user_roles_enforce_teacher_limit on public.user_roles;
 create trigger user_roles_enforce_teacher_limit
   before insert on public.user_roles

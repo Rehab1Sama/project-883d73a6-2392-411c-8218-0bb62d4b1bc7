@@ -14,7 +14,7 @@ export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   succeeded: "مدفوعة",
   failed: "فشل الدفع",
   canceled: "ملغاة",
-  expired: "منتهية الصلاحية",
+  expired: "مُنتهية الصلاحية",
 };
 
 export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {

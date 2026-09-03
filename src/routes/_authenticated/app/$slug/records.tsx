@@ -68,7 +68,7 @@ function todayISO() {
 }
 
 function RecordsPage() {
-  const { tenant, canRead, loading, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canRead, canManage, loading, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
   const [trackId, setTrackId] = useState("all");
   const [category, setCategory] = useState("all");
   const [from, setFrom] = useState(daysAgoISO(30));
@@ -174,7 +174,7 @@ function RecordsPage() {
         brandName={tenant.name}
         brandSubtitle="السجلات والتصدير"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="السجلات والتصدير"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "السجلات والتصدير" }]}
       >
@@ -211,7 +211,7 @@ function RecordsPage() {
       brandName={tenant.name}
       brandSubtitle="السجلات"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="سجلات الأنصبة والتقدم"
       description="كل السجلات المحفوظة مع الفلترة حسب المسار والمنهج والفترة، وتصديرها إلى إكسل أو CSV."
       crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "السجلات" }]}

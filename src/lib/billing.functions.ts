@@ -13,7 +13,7 @@ const periodEnum = z.enum(["monthly", "yearly", "lifetime"]);
  */
 export const createCheckoutIntent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z
       .object({
         tenantId: z.string().uuid(),
@@ -81,7 +81,7 @@ export const createCheckoutIntent = createServerFn({ method: "POST" })
  */
 export const recordManualPayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z.object({ intentId: z.string().uuid(), reference: z.string().trim().max(120).optional() }).parse(input),
   )
   .handler(async ({ data, context }) => {
@@ -98,7 +98,7 @@ export const recordManualPayment = createServerFn({ method: "POST" })
 /** إلغاء محاولة دفع معلّقة — لمالكة المنصة فقط */
 export const cancelPaymentIntent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ intentId: z.string().uuid() }).parse(input))
+  .validator((input: unknown) => z.object({ intentId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { data: isOwner } = await context.supabase.rpc("is_platform_owner", { _user_id: context.userId });
     if (!isOwner) throw new Error("غير مصرح");
@@ -115,7 +115,7 @@ export const cancelPaymentIntent = createServerFn({ method: "POST" })
 /** إدارة اشتراك مقرأة: تمديد، تغيير باقة، إيقاف التجديد، إعادة تنشيط، إيقاف */
 export const manageSubscription = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z
       .object({
         subscriptionId: z.string().uuid(),

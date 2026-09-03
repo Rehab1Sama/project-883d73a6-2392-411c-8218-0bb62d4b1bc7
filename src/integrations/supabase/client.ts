@@ -33,9 +33,15 @@ function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL =
-    import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'] || PUBLIC_SUPABASE_URL;
+    import.meta.env['VITE_STUDENT_PORTAL_SUPABASE_URL'] ||
+    import.meta.env['VITE_SUPABASE_URL'] ||
+    process.env['STUDENT_PORTAL_SUPABASE_URL'] ||
+    process.env['SUPABASE_URL'] ||
+    PUBLIC_SUPABASE_URL;
   const SUPABASE_PUBLISHABLE_KEY =
+    import.meta.env['VITE_STUDENT_PORTAL_SUPABASE_PUBLISHABLE_KEY'] ||
     import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] ||
+    process.env['STUDENT_PORTAL_SUPABASE_PUBLISHABLE_KEY'] ||
     process.env['SUPABASE_PUBLISHABLE_KEY'] ||
     PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 

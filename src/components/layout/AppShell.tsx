@@ -15,6 +15,12 @@ export type NavItem = {
   icon: ReactNode;
   /** مفتاح الميزة المطلوبة لإظهار هذا الرابط (اختياري). راجعي visibleTenantNav في nav.tsx */
   feature?: string;
+  /** يظهر فقط للقائدة/النائبة الإدارية/مالكة المنصة (راجعي visibleTenantNav) */
+  managerOnly?: boolean;
+  /** يظهر فقط للمعلمة/المشرفة المسموح لها بالإدخال حاليًا وفق إعداد progress_entry_mode (راجعي visibleTenantNav) */
+  recordOnly?: boolean;
+  /** يظهر للمعلمة/المشرفة المقصورة على حلقتها (راجعي visibleTenantNav) */
+  circleScoped?: boolean;
 };
 
 export type Crumb = { label: string; to?: string; params?: Record<string, string> };

@@ -39,7 +39,7 @@ export type BulkImportRowResult = {
  */
 export const bulkImportVolunteerAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => importSchema.parse(input))
+  .validator((input: unknown) => importSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -60,7 +60,7 @@ export const bulkImportVolunteerAccounts = createServerFn({ method: "POST" })
 
     // ذاكرة مؤقتة لتفادي إعادة إنشاء نفس المسار/الحلقة أكثر من مرة
     // داخل نفس عملية الاستيراد (وليس فقط الاعتماد على قاعدة البيانات).
-    const { resolveTrackId, resolveCircleId } = createTrackCircleResolver(supabaseAdmin, tenant.id);
+    const { resolveTrackId, resolveCircleId, resolveTrackForCircle } = createTrackCircleResolver(supabaseAdmin, tenant.id);
 
     const results: BulkImportRowResult[] = [];
 
@@ -74,10 +74,11 @@ export const bulkImportVolunteerAccounts = createServerFn({ method: "POST" })
         let circleId: string | null = null;
 
         if (role === "teacher" || role === "supervisor") {
-          if (!row.track_name || !row.circle_name) {
-            throw new Error("المعلمة/المشرفة تحتاج اسم مسار واسم حلقة");
+          if (!row.circle_name) {
+            throw new Error("المعلمة/المشرفة تحتاج اسم حلقة");
           }
-          trackId = await resolveTrackId(row.track_name);
+          // اسم المسار اختياري: يُستنتج من اسم الحلقة (البهور ١ → البهور)
+          trackId = await resolveTrackForCircle(row.circle_name, row.track_name ?? null);
           circleId = await resolveCircleId(trackId, row.circle_name);
         } else if (role === "academic_deputy") {
           if (!row.track_name) throw new Error("مسؤولة المسار تحتاج اسم مسار");

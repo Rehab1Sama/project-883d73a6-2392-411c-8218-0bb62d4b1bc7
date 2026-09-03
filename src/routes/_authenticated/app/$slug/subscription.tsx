@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/app/$slug/subscription")({
 });
 
 function SubscriptionPage() {
-  const { tenant, canManage, loading, hasFeature } = useTenantContext();
+  const { tenant, canManage, loading, hasFeature, canRecord, isCircleScopedOnly } = useTenantContext();
   const qc = useQueryClient();
   const [period, setPeriod] = useState<BillingPeriod>("monthly");
   const [planId, setPlanId] = useState<string>("");
@@ -112,7 +112,7 @@ function SubscriptionPage() {
     <AppShell
       brandName={tenant.name}
       brandSubtitle="الاشتراك والفواتير"
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title="الاشتراك والفواتير"
       crumbs={[{ label: tenant.name }, { label: "الاشتراك" }]}
     >

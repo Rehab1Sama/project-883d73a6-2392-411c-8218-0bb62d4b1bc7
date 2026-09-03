@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { normalizeEmail } from "@/lib/email";
+
+/** صلاحية رابط الدعوة: ربع ساعة فقط */
+const INVITE_TTL_MS = 15 * 60 * 1000;
+
 
 const approveSchema = z.object({
   requestId: z.string().uuid(),
@@ -17,7 +22,7 @@ const approveSchema = z.object({
 /** اعتماد طلب باقة: إنشاء المقرأة + الاشتراك + دعوة القائدة */
 export const approvePlanRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => approveSchema.parse(input))
+  .validator((input: unknown) => approveSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -68,10 +73,12 @@ export const approvePlanRequest = createServerFn({ method: "POST" })
         email: req.email.trim().toLowerCase(),
         role: "tenant_admin",
         invited_by: userId,
+        expires_at: new Date(Date.now() + INVITE_TTL_MS).toISOString(),
       })
       .select("token")
       .single();
     if (inviteError) throw inviteError;
+
 
     await supabase
       .from("plan_requests")
@@ -94,7 +101,7 @@ const memberInviteSchema = z.object({
  */
 export const sendMemberInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => memberInviteSchema.parse(input))
+  .validator((input: unknown) => memberInviteSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const email = data.email.trim().toLowerCase();
@@ -122,9 +129,16 @@ export const sendMemberInvitation = createServerFn({ method: "POST" })
 
     const { data: invite, error: inviteError } = await supabase
       .from("invitations")
-      .insert({ tenant_id: data.tenantId, email, role: data.role, invited_by: userId })
+      .insert({
+        tenant_id: data.tenantId,
+        email,
+        role: data.role,
+        invited_by: userId,
+        expires_at: new Date(Date.now() + INVITE_TTL_MS).toISOString(),
+      })
       .select("token")
       .single();
+
     if (inviteError) throw inviteError;
 
     return { token: invite.token, reused: false as const };
@@ -132,7 +146,7 @@ export const sendMemberInvitation = createServerFn({ method: "POST" })
 
 /** قراءة بيانات دعوة عبر رمزها (الرمز نفسه هو الإثبات) */
 export const getInvitation = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(input))
+  .validator((input: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(input))
   .handler(async ({ data }) => {
     const { guardPublicRate } = await import("@/lib/rate-limit-guard.server");
     await guardPublicRate("invite_lookup", 10, 60);
@@ -154,6 +168,7 @@ export const getInvitation = createServerFn({ method: "POST" })
     return {
       ok: true as const,
       email: maskEmail(invite.email),
+      realEmail: normalizeEmail(invite.email),
       role: invite.role,
       tenantName: invite.tenants?.name ?? "",
       tenantSlug: invite.tenants?.slug ?? "",
@@ -163,16 +178,11 @@ export const getInvitation = createServerFn({ method: "POST" })
 /** قبول الدعوة ومنح الدور للمستخدمة الحالية */
 export const acceptInvitation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(input))
+  .validator((input: unknown) => z.object({ token: z.string().min(10).max(200) }).parse(input))
   .handler(async ({ data, context }) => {
-    const { userId, claims } = context;
+    const { userId } = context;
     const { guardPublicRate } = await import("@/lib/rate-limit-guard.server");
     await guardPublicRate("invite_accept", 10, 60);
-    const userEmail = String((claims as { email?: string }).email ?? "").toLowerCase();
-    const emailVerified = (claims as { email_verified?: boolean }).email_verified === true;
-    if (!emailVerified) {
-      throw new Error("فعّلي بريدك الإلكتروني أولًا قبل قبول الدعوة");
-    }
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: invite } = await supabaseAdmin
@@ -183,10 +193,9 @@ export const acceptInvitation = createServerFn({ method: "POST" })
     if (!invite) throw new Error("رابط الدعوة غير صحيح");
     if (invite.status !== "pending") throw new Error("هذه الدعوة استُخدمت مسبقًا");
     if (new Date(invite.expires_at) < new Date()) throw new Error("انتهت صلاحية الدعوة");
-    if (invite.email.toLowerCase() !== userEmail) {
-      throw new Error("هذه الدعوة مرسلة إلى بريد آخر، سجّلي الدخول بالبريد المدعو");
-    }
+    // الرابط نفسه هو الإثبات، ويقبله أي حساب مسجّل خلال مدة الصلاحية القصيرة
     if (!invite.tenant_id) throw new Error("الدعوة غير مرتبطة بمقرأة");
+
 
     const { error: roleError } = await supabaseAdmin
       .from("user_roles")
@@ -199,4 +208,40 @@ export const acceptInvitation = createServerFn({ method: "POST" })
       .eq("id", invite.id);
 
     return { slug: invite.tenants?.slug ?? "" };
+  });
+
+const linkSchema = z.object({
+  tenantId: z.string().uuid(),
+  email: z.string().trim().email().max(200),
+  role: z.enum(["tenant_admin", "teacher", "supervisor", "academic_deputy", "admin_deputy", "student"]).default(
+    "tenant_admin",
+  ),
+});
+
+/** ربط حساب موجود بمقرأة يدويًا (بدون دعوة) — لمالكة المنصة أو مديرة المقرأة */
+export const linkExistingUserToTenant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => linkSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const [{ data: isOwner }, { data: isManager }] = await Promise.all([
+      supabase.rpc("is_platform_owner", { _user_id: userId }),
+      supabase.rpc("is_tenant_manager", { _user_id: userId, _tenant_id: data.tenantId }),
+    ]);
+    if (!isOwner && !isManager) throw new Error("غير مصرح بالربط لهذه المقرأة");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const email = normalizeEmail(data.email);
+
+    const { data: profiles } = await supabaseAdmin.from("profiles").select("id, email, full_name").limit(1000);
+    const match = (profiles ?? []).find((p) => normalizeEmail(p.email) === email);
+    if (!match) throw new Error("لا يوجد حساب مسجّل بهذا البريد — اطلبي منها إنشاء حساب أولًا");
+
+    const { error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: match.id, tenant_id: data.tenantId, role: data.role });
+    if (roleError && !roleError.message.includes("duplicate")) throw roleError;
+
+    return { userId: match.id, name: match.full_name ?? match.email ?? email };
   });

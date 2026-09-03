@@ -32,6 +32,7 @@ create index if not exists volunteer_applications_tenant_idx
   on public.volunteer_applications (tenant_id, status, created_at desc);
 
 drop trigger if exists volunteer_applications_set_updated_at on public.volunteer_applications;
+drop trigger if exists volunteer_applications_set_updated_at on public.volunteer_applications;
 create trigger volunteer_applications_set_updated_at
   before update on public.volunteer_applications
   for each row execute function public.set_updated_at();

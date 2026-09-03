@@ -10,7 +10,7 @@ const rowSchema = z.object({
   date_of_birth: z.string().trim().max(20).nullable().optional(),
   age: z.number().int().min(0).max(120).nullable().optional(),
   country: z.string().trim().max(100).nullable().optional(),
-  track_name: z.string().trim().min(1).max(120),
+  track_name: z.string().trim().max(120).nullable().optional(),
   circle_name: z.string().trim().min(1).max(120),
   /** بريد الطالبة — مطلوب فقط في وضع "حسابات الطالبات" (students_mode = accounts) */
   email: z.string().trim().email().max(255).nullable().optional(),
@@ -49,7 +49,7 @@ export type BulkImportStudentRowResult = {
  */
 export const bulkImportStudents = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => importSchema.parse(input))
+  .validator((input: unknown) => importSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -69,7 +69,7 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
     if (!isManager) throw new Error("غير مصرح لك بهذا الإجراء");
 
     const inAccountsMode = (tenant as unknown as { students_mode?: string }).students_mode === "accounts";
-    const { resolveTrackId, resolveCircleId } = createTrackCircleResolver(supabaseAdmin, tenant.id);
+    const { resolveCircleId, resolveTrackForCircle } = createTrackCircleResolver(supabaseAdmin, tenant.id);
 
     const results: BulkImportStudentRowResult[] = [];
 
@@ -77,7 +77,8 @@ export const bulkImportStudents = createServerFn({ method: "POST" })
       const row = data.rows[i]!;
       const rowNum = i + 2; // صف 1 = ترويسة الملف
       try {
-        const trackId = await resolveTrackId(row.track_name);
+        // اسم المسار اختياري: يُستنتج من اسم الحلقة (البهور ١ → البهور)
+        const trackId = await resolveTrackForCircle(row.circle_name, row.track_name ?? null);
         const circleId = await resolveCircleId(trackId, row.circle_name);
 
         const { data: student, error: studentError } = await supabaseAdmin

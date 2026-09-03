@@ -321,6 +321,7 @@ end;
 $$;
 
 drop trigger if exists tenant_branding_gate on public.tenants;
+drop trigger if exists tenant_branding_gate on public.tenants;
 create trigger tenant_branding_gate
   before update on public.tenants
   for each row

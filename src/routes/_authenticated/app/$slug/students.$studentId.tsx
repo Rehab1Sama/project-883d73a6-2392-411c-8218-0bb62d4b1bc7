@@ -43,7 +43,7 @@ function rangeText(row: {
 
 function StudentProfilePage() {
   const { studentId } = Route.useParams();
-  const { tenant, canRead, loading, hasFeature, featuresLoading } = useTenantContext();
+  const { tenant, canRead, canManage, loading, hasFeature, featuresLoading, canRecord, isCircleScopedOnly } = useTenantContext();
 
   useTenantTheme(tenant?.primary_color ?? null, tenant?.accent_color ?? null);
 
@@ -128,7 +128,7 @@ function StudentProfilePage() {
         brandName={tenant.name}
         brandSubtitle="ملف الطالبة"
         logoUrl={tenant.logo_url}
-        nav={visibleTenantNav(tenant.slug, hasFeature)}
+        nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
         title="ملف الطالبة"
         crumbs={[{ label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } }, { label: "ملف الطالبة" }]}
       >
@@ -170,7 +170,7 @@ function StudentProfilePage() {
       brandName={tenant.name}
       brandSubtitle="ملف الطالبة"
       logoUrl={tenant.logo_url}
-      nav={visibleTenantNav(tenant.slug, hasFeature)}
+      nav={visibleTenantNav(tenant.slug, hasFeature, canManage, canRecord, isCircleScopedOnly)}
       title={student.full_name}
       crumbs={[
         { label: tenant.name, to: "/app/$slug", params: { slug: tenant.slug } },

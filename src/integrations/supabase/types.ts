@@ -958,6 +958,8 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           full_name: string
+          leave_end: string | null
+          leave_start: string | null
           guardian_name: string | null
           guardian_phone: string | null
           id: string
@@ -965,6 +967,7 @@ export type Database = {
           status: string
           tenant_id: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           age?: number | null
@@ -979,6 +982,7 @@ export type Database = {
           status?: string
           tenant_id: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           age?: number | null
@@ -986,6 +990,8 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           full_name?: string
+          leave_end?: string | null
+          leave_start?: string | null
           guardian_name?: string | null
           guardian_phone?: string | null
           id?: string
@@ -993,6 +999,7 @@ export type Database = {
           status?: string
           tenant_id?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1248,7 +1255,10 @@ export type Database = {
       }
       user_roles: {
         Row: {
+          account_status: string
           circle_id: string | null
+          leave_end: string | null
+          leave_start: string | null
           created_at: string
           id: string
           is_volunteer: boolean
@@ -1258,7 +1268,10 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_status?: string
           circle_id?: string | null
+          leave_end?: string | null
+          leave_start?: string | null
           created_at?: string
           id?: string
           is_volunteer?: boolean
@@ -1268,7 +1281,10 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_status?: string
           circle_id?: string | null
+          leave_end?: string | null
+          leave_start?: string | null
           created_at?: string
           id?: string
           is_volunteer?: boolean

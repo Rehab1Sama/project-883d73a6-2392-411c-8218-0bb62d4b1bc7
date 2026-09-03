@@ -10,6 +10,7 @@ create extension if not exists pgcrypto;
 -- ---------------------------------------------------------------------
 -- ENUM TYPES
 -- ---------------------------------------------------------------------
+do $$ begin
 create type public.app_role as enum (
   'platform_owner',
   'tenant_admin',
@@ -19,34 +20,57 @@ create type public.app_role as enum (
   'teacher',
   'student'
 );
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.attendance_status as enum ('present', 'absent', 'excused');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.billing_period as enum ('monthly', 'yearly', 'lifetime');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.invoice_status as enum ('draft', 'open', 'paid', 'void', 'refunded', 'failed');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.payment_status as enum (
   'pending', 'processing', 'succeeded', 'failed', 'canceled', 'expired'
 );
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.request_status as enum ('new', 'contacted', 'approved', 'rejected');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.subscription_status as enum (
   'trialing', 'active', 'past_due', 'canceled', 'expired'
 );
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.tenant_progress_mode as enum ('teacher', 'supervisor', 'both');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.tenant_status as enum ('active', 'suspended', 'pending');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.tenant_students_mode as enum ('records', 'accounts');
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.track_category as enum (
   'hifz_new', 'thabit_new', 'review_general', 'review_recent', 'review_distant', 'tilawa'
 );
+exception when duplicate_object then null; end $$;
 
+do $$ begin
 create type public.webhook_event_status as enum ('received', 'processed', 'ignored', 'error');
+exception when duplicate_object then null; end $$;
 
 -- ---------------------------------------------------------------------
 -- UTILITY FUNCTIONS
@@ -68,7 +92,7 @@ $$;
 -- ---------------------------------------------------------------------
 
 -- profiles (1:1 with auth.users, no FK to auth.users per instructions)
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid primary key,
   full_name text,
   email text,
@@ -79,7 +103,7 @@ create table public.profiles (
 );
 
 -- tenants
-create table public.tenants (
+create table if not exists public.tenants (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   slug text not null unique,
@@ -100,7 +124,7 @@ create table public.tenants (
 );
 
 -- user_roles
-create table public.user_roles (
+create table if not exists public.user_roles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
   role public.app_role not null,
@@ -109,11 +133,11 @@ create table public.user_roles (
   created_at timestamptz not null default now()
 );
 
-create unique index user_roles_user_role_tenant_uidx
+create unique index if not exists user_roles_user_role_tenant_uidx
   on public.user_roles (user_id, role, coalesce(tenant_id, '00000000-0000-0000-0000-000000000000'::uuid));
 
 -- plans
-create table public.plans (
+create table if not exists public.plans (
   id uuid primary key default gen_random_uuid(),
   code text not null unique,
   name_ar text not null,
@@ -135,7 +159,7 @@ create table public.plans (
 );
 
 -- features
-create table public.features (
+create table if not exists public.features (
   id uuid primary key default gen_random_uuid(),
   key text not null unique,
   name_ar text not null,
@@ -147,7 +171,7 @@ create table public.features (
 );
 
 -- tenant_features
-create table public.tenant_features (
+create table if not exists public.tenant_features (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   feature_key text not null references public.features(key) on delete cascade,
@@ -159,7 +183,7 @@ create table public.tenant_features (
 );
 
 -- plan_features (يربط كل باقة بمفاتيح الميزات المشمولة بها)
-create table public.plan_features (
+create table if not exists public.plan_features (
   id uuid primary key default gen_random_uuid(),
   plan_id uuid not null references public.plans(id) on delete cascade,
   feature_key text not null references public.features(key) on delete cascade,
@@ -169,7 +193,7 @@ create table public.plan_features (
 );
 
 -- tracks
-create table public.tracks (
+create table if not exists public.tracks (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   name text not null,
@@ -183,7 +207,7 @@ create table public.tracks (
 );
 
 -- students
-create table public.students (
+create table if not exists public.students (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   full_name text not null,
@@ -197,7 +221,7 @@ create table public.students (
 );
 
 -- circles
-create table public.circles (
+create table if not exists public.circles (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   track_id uuid references public.tracks(id) on delete set null,
@@ -212,7 +236,7 @@ create table public.circles (
 );
 
 -- circle_students
-create table public.circle_students (
+create table if not exists public.circle_students (
   id uuid primary key default gen_random_uuid(),
   circle_id uuid not null references public.circles(id) on delete cascade,
   student_id uuid not null references public.students(id) on delete cascade,
@@ -221,7 +245,7 @@ create table public.circle_students (
 );
 
 -- attendance
-create table public.attendance (
+create table if not exists public.attendance (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   circle_id uuid not null references public.circles(id) on delete cascade,
@@ -235,7 +259,7 @@ create table public.attendance (
 );
 
 -- progress_records
-create table public.progress_records (
+create table if not exists public.progress_records (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   student_id uuid not null references public.students(id) on delete cascade,
@@ -254,7 +278,7 @@ create table public.progress_records (
 );
 
 -- quotas
-create table public.quotas (
+create table if not exists public.quotas (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   student_id uuid not null references public.students(id) on delete cascade,
@@ -271,7 +295,7 @@ create table public.quotas (
 );
 
 -- invitations
-create table public.invitations (
+create table if not exists public.invitations (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid references public.tenants(id) on delete cascade,
   email text not null,
@@ -287,7 +311,7 @@ create table public.invitations (
 );
 
 -- contact_messages
-create table public.contact_messages (
+create table if not exists public.contact_messages (
   id uuid primary key default gen_random_uuid(),
   name text not null,
   email text not null,
@@ -298,7 +322,7 @@ create table public.contact_messages (
 );
 
 -- plan_requests
-create table public.plan_requests (
+create table if not exists public.plan_requests (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid references public.tenants(id) on delete set null,
   plan_id uuid references public.plans(id) on delete set null,
@@ -314,7 +338,7 @@ create table public.plan_requests (
 );
 
 -- subscriptions
-create table public.subscriptions (
+create table if not exists public.subscriptions (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid not null references public.tenants(id) on delete cascade,
   plan_id uuid not null references public.plans(id) on delete restrict,
@@ -338,7 +362,7 @@ create table public.subscriptions (
 );
 
 -- payment_intents
-create table public.payment_intents (
+create table if not exists public.payment_intents (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid references public.tenants(id) on delete set null,
   plan_id uuid not null references public.plans(id) on delete restrict,
@@ -362,7 +386,7 @@ create table public.payment_intents (
 );
 
 -- invoices
-create table public.invoices (
+create table if not exists public.invoices (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid references public.tenants(id) on delete set null,
   plan_id uuid references public.plans(id) on delete set null,
@@ -388,7 +412,7 @@ create table public.invoices (
 );
 
 -- payment_webhook_events
-create table public.payment_webhook_events (
+create table if not exists public.payment_webhook_events (
   id uuid primary key default gen_random_uuid(),
   tenant_id uuid references public.tenants(id) on delete set null,
   invoice_id uuid references public.invoices(id) on delete set null,
@@ -663,6 +687,7 @@ begin
       'plan_requests','subscriptions','payment_intents','invoices','payment_webhook_events'
     ])
   loop
+    execute format('drop trigger if exists set_updated_at on public.%I;', t);
     execute format(
       'create trigger set_updated_at before update on public.%I for each row execute function public.set_updated_at();',
       t
@@ -673,24 +698,24 @@ end $$;
 -- ---------------------------------------------------------------------
 -- INDEXES (common lookups)
 -- ---------------------------------------------------------------------
-create index tenants_slug_idx on public.tenants (slug);
-create index plan_features_plan_idx on public.plan_features (plan_id);
-create index plan_features_feature_idx on public.plan_features (feature_key);
-create index user_roles_user_idx on public.user_roles (user_id);
-create index user_roles_tenant_idx on public.user_roles (tenant_id);
-create index students_tenant_idx on public.students (tenant_id);
-create index circles_tenant_idx on public.circles (tenant_id);
-create index tracks_tenant_idx on public.tracks (tenant_id);
-create index attendance_tenant_idx on public.attendance (tenant_id);
-create index attendance_student_idx on public.attendance (student_id);
-create index progress_records_tenant_idx on public.progress_records (tenant_id);
-create index progress_records_student_idx on public.progress_records (student_id);
-create index quotas_tenant_idx on public.quotas (tenant_id);
-create index invoices_tenant_idx on public.invoices (tenant_id);
-create index subscriptions_tenant_idx on public.subscriptions (tenant_id);
-create index payment_intents_tenant_idx on public.payment_intents (tenant_id);
-create index invitations_tenant_idx on public.invitations (tenant_id);
-create index invitations_email_idx on public.invitations (lower(email));
+create index if not exists tenants_slug_idx on public.tenants (slug);
+create index if not exists plan_features_plan_idx on public.plan_features (plan_id);
+create index if not exists plan_features_feature_idx on public.plan_features (feature_key);
+create index if not exists user_roles_user_idx on public.user_roles (user_id);
+create index if not exists user_roles_tenant_idx on public.user_roles (tenant_id);
+create index if not exists students_tenant_idx on public.students (tenant_id);
+create index if not exists circles_tenant_idx on public.circles (tenant_id);
+create index if not exists tracks_tenant_idx on public.tracks (tenant_id);
+create index if not exists attendance_tenant_idx on public.attendance (tenant_id);
+create index if not exists attendance_student_idx on public.attendance (student_id);
+create index if not exists progress_records_tenant_idx on public.progress_records (tenant_id);
+create index if not exists progress_records_student_idx on public.progress_records (student_id);
+create index if not exists quotas_tenant_idx on public.quotas (tenant_id);
+create index if not exists invoices_tenant_idx on public.invoices (tenant_id);
+create index if not exists subscriptions_tenant_idx on public.subscriptions (tenant_id);
+create index if not exists payment_intents_tenant_idx on public.payment_intents (tenant_id);
+create index if not exists invitations_tenant_idx on public.invitations (tenant_id);
+create index if not exists invitations_email_idx on public.invitations (lower(email));
 
 -- =====================================================================
 -- GRANTS + ROW LEVEL SECURITY + POLICIES
@@ -702,14 +727,17 @@ grant all on public.profiles to service_role;
 
 alter table public.profiles enable row level security;
 
+drop policy if exists "profiles_select_own_or_owner" on public.profiles;
 create policy "profiles_select_own_or_owner" on public.profiles
   for select to authenticated
   using (id = auth.uid() or public.is_platform_owner(auth.uid()));
 
+drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles
   for insert to authenticated
   with check (id = auth.uid());
 
+drop policy if exists "profiles_update_own_or_owner" on public.profiles;
 create policy "profiles_update_own_or_owner" on public.profiles
   for update to authenticated
   using (id = auth.uid() or public.is_platform_owner(auth.uid()))
@@ -722,19 +750,23 @@ grant all on public.tenants to service_role;
 
 alter table public.tenants enable row level security;
 
+drop policy if exists "tenants_public_read_active" on public.tenants;
 create policy "tenants_public_read_active" on public.tenants
   for select to anon, authenticated
   using (status = 'active');
 
+drop policy if exists "tenants_member_read" on public.tenants;
 create policy "tenants_member_read" on public.tenants
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), id));
 
+drop policy if exists "tenants_owner_all" on public.tenants;
 create policy "tenants_owner_all" on public.tenants
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
   with check (public.is_platform_owner(auth.uid()));
 
+drop policy if exists "tenants_manager_update" on public.tenants;
 create policy "tenants_manager_update" on public.tenants
   for update to authenticated
   using (public.is_tenant_manager(auth.uid(), id))
@@ -746,6 +778,7 @@ grant all on public.user_roles to service_role;
 
 alter table public.user_roles enable row level security;
 
+drop policy if exists "user_roles_select_own_or_tenant" on public.user_roles;
 create policy "user_roles_select_own_or_tenant" on public.user_roles
   for select to authenticated
   using (
@@ -754,6 +787,7 @@ create policy "user_roles_select_own_or_tenant" on public.user_roles
     or (tenant_id is not null and public.is_tenant_manager(auth.uid(), tenant_id))
   );
 
+drop policy if exists "roles_manage" on public.user_roles;
 create policy "roles_manage" on public.user_roles
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -766,10 +800,12 @@ grant all on public.plans to service_role;
 
 alter table public.plans enable row level security;
 
+drop policy if exists "plans_public_read" on public.plans;
 create policy "plans_public_read" on public.plans
   for select to anon, authenticated
   using (is_active = true);
 
+drop policy if exists "plans_owner_read_all" on public.plans;
 create policy "plans_owner_read_all" on public.plans
   for select to authenticated
   using (public.is_platform_owner(auth.uid()));
@@ -783,10 +819,12 @@ grant all on public.features to service_role;
 
 alter table public.features enable row level security;
 
+drop policy if exists "features_public_read" on public.features;
 create policy "features_public_read" on public.features
   for select to anon, authenticated
   using (true);
 
+drop policy if exists "features_owner_manage" on public.features;
 create policy "features_owner_manage" on public.features
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -798,10 +836,12 @@ grant all on public.tenant_features to service_role;
 
 alter table public.tenant_features enable row level security;
 
+drop policy if exists "tenant_features_member_read" on public.tenant_features;
 create policy "tenant_features_member_read" on public.tenant_features
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "tenant_features_owner_manage" on public.tenant_features;
 create policy "tenant_features_owner_manage" on public.tenant_features
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -814,10 +854,12 @@ grant all on public.plan_features to service_role;
 
 alter table public.plan_features enable row level security;
 
+drop policy if exists "plan_features_public_read" on public.plan_features;
 create policy "plan_features_public_read" on public.plan_features
   for select to anon, authenticated
   using (true);
 
+drop policy if exists "plan_features_owner_manage" on public.plan_features;
 create policy "plan_features_owner_manage" on public.plan_features
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -829,10 +871,12 @@ grant all on public.tracks to service_role;
 
 alter table public.tracks enable row level security;
 
+drop policy if exists "tracks_member_read" on public.tracks;
 create policy "tracks_member_read" on public.tracks
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "tracks_manager_write" on public.tracks;
 create policy "tracks_manager_write" on public.tracks
   for all to authenticated
   using (public.is_tenant_manager(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -844,10 +888,12 @@ grant all on public.students to service_role;
 
 alter table public.students enable row level security;
 
+drop policy if exists "students_member_read" on public.students;
 create policy "students_member_read" on public.students
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "students_manager_write" on public.students;
 create policy "students_manager_write" on public.students
   for all to authenticated
   using (public.is_tenant_manager(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -859,10 +905,12 @@ grant all on public.circles to service_role;
 
 alter table public.circles enable row level security;
 
+drop policy if exists "circles_member_read" on public.circles;
 create policy "circles_member_read" on public.circles
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "circles_manager_write" on public.circles;
 create policy "circles_manager_write" on public.circles
   for all to authenticated
   using (public.is_tenant_manager(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -874,6 +922,7 @@ grant all on public.circle_students to service_role;
 
 alter table public.circle_students enable row level security;
 
+drop policy if exists "circle_students_member_read" on public.circle_students;
 create policy "circle_students_member_read" on public.circle_students
   for select to authenticated
   using (
@@ -884,6 +933,7 @@ create policy "circle_students_member_read" on public.circle_students
     )
   );
 
+drop policy if exists "circle_students_manager_write" on public.circle_students;
 create policy "circle_students_manager_write" on public.circle_students
   for all to authenticated
   using (
@@ -909,10 +959,12 @@ grant all on public.attendance to service_role;
 
 alter table public.attendance enable row level security;
 
+drop policy if exists "attendance_member_read" on public.attendance;
 create policy "attendance_member_read" on public.attendance
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "attendance_recorder_write" on public.attendance;
 create policy "attendance_recorder_write" on public.attendance
   for all to authenticated
   using (public.can_record_academic(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -924,10 +976,12 @@ grant all on public.progress_records to service_role;
 
 alter table public.progress_records enable row level security;
 
+drop policy if exists "progress_records_member_read" on public.progress_records;
 create policy "progress_records_member_read" on public.progress_records
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "progress_records_recorder_write" on public.progress_records;
 create policy "progress_records_recorder_write" on public.progress_records
   for all to authenticated
   using (public.can_record_academic(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -939,10 +993,12 @@ grant all on public.quotas to service_role;
 
 alter table public.quotas enable row level security;
 
+drop policy if exists "quotas_member_read" on public.quotas;
 create policy "quotas_member_read" on public.quotas
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "quotas_manager_write" on public.quotas;
 create policy "quotas_manager_write" on public.quotas
   for all to authenticated
   using (public.is_tenant_manager(auth.uid(), tenant_id) or public.is_platform_owner(auth.uid()))
@@ -954,6 +1010,7 @@ grant all on public.invitations to service_role;
 
 alter table public.invitations enable row level security;
 
+drop policy if exists "invitations_manager_read" on public.invitations;
 create policy "invitations_manager_read" on public.invitations
   for select to authenticated
   using (
@@ -962,6 +1019,7 @@ create policy "invitations_manager_read" on public.invitations
     or lower(email) = lower(coalesce((auth.jwt() ->> 'email'), ''))
   );
 
+drop policy if exists "invitations_manager_manage" on public.invitations;
 create policy "invitations_manager_manage" on public.invitations
   for all to authenticated
   using (
@@ -980,14 +1038,17 @@ grant all on public.contact_messages to service_role;
 
 alter table public.contact_messages enable row level security;
 
+drop policy if exists "contact_messages_anon_insert" on public.contact_messages;
 create policy "contact_messages_anon_insert" on public.contact_messages
   for insert to anon
   with check (true);
 
+drop policy if exists "contact_messages_auth_insert" on public.contact_messages;
 create policy "contact_messages_auth_insert" on public.contact_messages
   for insert to authenticated
   with check (true);
 
+drop policy if exists "contact_messages_owner_manage" on public.contact_messages;
 create policy "contact_messages_owner_manage" on public.contact_messages
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -1000,19 +1061,23 @@ grant all on public.plan_requests to service_role;
 
 alter table public.plan_requests enable row level security;
 
+drop policy if exists "plan_requests_anon_insert" on public.plan_requests;
 create policy "plan_requests_anon_insert" on public.plan_requests
   for insert to anon
   with check (true);
 
+drop policy if exists "plan_requests_auth_insert" on public.plan_requests;
 create policy "plan_requests_auth_insert" on public.plan_requests
   for insert to authenticated
   with check (true);
 
+drop policy if exists "plan_requests_owner_manage" on public.plan_requests;
 create policy "plan_requests_owner_manage" on public.plan_requests
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
   with check (public.is_platform_owner(auth.uid()));
 
+drop policy if exists "plan_requests_tenant_read" on public.plan_requests;
 create policy "plan_requests_tenant_read" on public.plan_requests
   for select to authenticated
   using (tenant_id is not null and public.is_tenant_manager(auth.uid(), tenant_id));
@@ -1023,10 +1088,12 @@ grant all on public.subscriptions to service_role;
 
 alter table public.subscriptions enable row level security;
 
+drop policy if exists "subscriptions_tenant_read" on public.subscriptions;
 create policy "subscriptions_tenant_read" on public.subscriptions
   for select to authenticated
   using (public.is_tenant_member(auth.uid(), tenant_id));
 
+drop policy if exists "subscriptions_owner_manage" on public.subscriptions;
 create policy "subscriptions_owner_manage" on public.subscriptions
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -1038,6 +1105,7 @@ grant all on public.payment_intents to service_role;
 
 alter table public.payment_intents enable row level security;
 
+drop policy if exists "payment_intents_tenant_read" on public.payment_intents;
 create policy "payment_intents_tenant_read" on public.payment_intents
   for select to authenticated
   using (
@@ -1046,10 +1114,12 @@ create policy "payment_intents_tenant_read" on public.payment_intents
     or public.is_platform_owner(auth.uid())
   );
 
+drop policy if exists "payment_intents_authenticated_insert" on public.payment_intents;
 create policy "payment_intents_authenticated_insert" on public.payment_intents
   for insert to authenticated
   with check (created_by = auth.uid() or public.is_platform_owner(auth.uid()));
 
+drop policy if exists "payment_intents_owner_manage" on public.payment_intents;
 create policy "payment_intents_owner_manage" on public.payment_intents
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -1061,6 +1131,7 @@ grant all on public.invoices to service_role;
 
 alter table public.invoices enable row level security;
 
+drop policy if exists "invoices_tenant_read" on public.invoices;
 create policy "invoices_tenant_read" on public.invoices
   for select to authenticated
   using (
@@ -1068,6 +1139,7 @@ create policy "invoices_tenant_read" on public.invoices
     or public.is_platform_owner(auth.uid())
   );
 
+drop policy if exists "invoices_owner_manage" on public.invoices;
 create policy "invoices_owner_manage" on public.invoices
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
@@ -1079,6 +1151,7 @@ grant all on public.payment_webhook_events to service_role;
 
 alter table public.payment_webhook_events enable row level security;
 
+drop policy if exists "payment_webhook_events_owner_manage" on public.payment_webhook_events;
 create policy "payment_webhook_events_owner_manage" on public.payment_webhook_events
   for all to authenticated
   using (public.is_platform_owner(auth.uid()))
