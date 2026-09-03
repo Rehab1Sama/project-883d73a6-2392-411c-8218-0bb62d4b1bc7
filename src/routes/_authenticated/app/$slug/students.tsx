@@ -371,13 +371,19 @@ function StudentsPage() {
             />
             <Button variant="outline" disabled={importing} onClick={() => importFileRef.current?.click()}>
               {importing ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-              استيراد من Excel
+              استيراد من Excel أو CSV
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => downloadCsv("نموذج-الطالبات.csv", buildCsv(STUDENT_HEADERS, STUDENT_SAMPLE))}
+            >
+              <Download className="size-4" />
+              تحميل النموذج
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            الأعمدة بالترتيب: الاسم، اسم ولي الأمر، جوال ولي الأمر، تاريخ الميلاد، العمر، البلد، المسار،
-            الحلقة، البريد (اختياري)، كلمة السر المؤقتة (اختياري). تُنشأ المسار/الحلقة تلقائيًا إن لم
-            يكونا موجودَين — بشرط ألا يتكرر اسمهما.
+            الأعمدة: {STUDENT_HEADERS.join("، ")}. الترتيب غير مهم — يُقرأ الملف بأسماء الترويسة.
+            تُنشأ المسار/الحلقة تلقائيًا إن لم يكونا موجودَين — بشرط ألا يتكرر اسمهما.
           </p>
           <p className="text-xs text-muted-foreground">
             رابط تسجيل الطالبات العام: <strong className="font-medium">{typeof window !== "undefined" ? `${window.location.origin}/s/${tenant.slug}` : `/s/${tenant.slug}`}</strong>
