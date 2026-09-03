@@ -34,6 +34,8 @@ type Props = {
   description?: string;
   crumbs?: Crumb[];
   actions?: ReactNode;
+  /** واجهة مبسّطة: قائمة جانبية بزر تسجيل الخروج فقط، بلا مساعد ولا زر تثبيت (بوابة الطالبة) */
+  minimal?: boolean;
   children: ReactNode;
 };
 
