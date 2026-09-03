@@ -312,10 +312,17 @@ function VolunteersPage() {
             />
             <Button variant="outline" disabled={importing} onClick={() => fileRef.current?.click()}>
               {importing ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
-              استيراد من Excel
+              استيراد من Excel أو CSV
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => downloadCsv("نموذج-المتطوعات.csv", buildCsv(VOLUNTEER_HEADERS, VOLUNTEER_SAMPLE))}
+            >
+              <Download className="size-4" />
+              تحميل النموذج
             </Button>
             <span className="text-xs text-muted-foreground">
-              الأعمدة بالترتيب: الاسم، البريد، كلمة المرور، الدور، المسار، الحلقة، العمر، البلد
+              الأعمدة: {VOLUNTEER_HEADERS.join("، ")} — الترتيب غير مهم، يُقرأ الملف بأسماء الترويسة
             </span>
           </div>
         ) : null}
