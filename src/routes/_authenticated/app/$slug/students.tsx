@@ -362,7 +362,7 @@ function StudentsPage() {
             <input
               ref={importFileRef}
               type="file"
-              accept=".xlsx"
+              accept=".xlsx,.csv"
               className="hidden"
               onChange={(e) => {
                 const f = e.target.files?.[0];
