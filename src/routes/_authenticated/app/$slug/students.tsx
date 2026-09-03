@@ -298,43 +298,27 @@ function StudentsPage() {
     setImporting(true);
     setImportResults(null);
     try {
-      const ExcelJS = await import("exceljs");
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await file.arrayBuffer());
-      const sheet = wb.worksheets[0];
-      if (!sheet) throw new Error("الملف فارغ");
-      const rows: {
-        full_name: string;
-        guardian_name: string | null;
-        guardian_phone: string | null;
-        date_of_birth: string | null;
-        age: number | null;
-        country: string | null;
-        track_name: string | null;
-        circle_name: string;
-        email: string | null;
-        password: string | null;
-      }[] = [];
-      sheet.eachRow((row, index) => {
-        if (index === 1) return; // ترويسة
-        const cell = (i: number) => String(row.getCell(i).text ?? "").trim();
-        const full_name = cell(1);
-        if (!full_name) return;
-        const ageRaw = cell(5);
-        const email = cell(9) || null;
-        rows.push({
-          full_name,
-          guardian_name: cell(2) || null,
-          guardian_phone: cell(3) || null,
-          date_of_birth: cell(4) || null,
-          age: ageRaw ? Number(ageRaw) || null : null,
-          country: cell(6) || null,
-          track_name: cell(7) || null,
-          circle_name: cell(8),
-          email,
-          password: email ? cell(10) || null : null, // كلمة السر غير ذات صلة بدون بريد
+      // القراءة تعتمد على أسماء الترويسة (عربية أو إنجليزية) لا على ترتيب الأعمدة،
+      // فيقبل الملف أعمدة بأي ترتيب سواء كان Excel أو CSV.
+      const grid = await readSheetGrid(file);
+      const rows = mapRows(grid, STUDENT_ALIASES)
+        .filter((r) => (r["full_name"] ?? "").trim())
+        .map((r) => {
+          const email = (r["email"] ?? "").trim() || null;
+          return {
+            full_name: (r["full_name"] ?? "").trim(),
+            guardian_name: (r["guardian_name"] ?? "").trim() || null,
+            guardian_phone: (r["guardian_phone"] ?? "").trim() || null,
+            date_of_birth: (r["date_of_birth"] ?? "").trim() || null,
+            age: toNumber(r["age"] ?? ""),
+            country: (r["country"] ?? "").trim() || null,
+            track_name: (r["track_name"] ?? "").trim() || null,
+            circle_name: (r["circle_name"] ?? "").trim(),
+            email,
+            // كلمة السر غير ذات صلة بدون بريد
+            password: email ? (r["password"] ?? "").trim() || null : null,
+          };
         });
-      });
       if (rows.length === 0) throw new Error("لم نجد صفوفًا صالحة في الملف");
       const { results } = await importStudents({ data: { slug: tenant!.slug, rows } });
       setImportResults(results);
