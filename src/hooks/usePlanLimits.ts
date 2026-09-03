@@ -40,7 +40,7 @@ export function usePlanLimits(tenantId: string | undefined) {
 
   const data = query.data;
 
-  /** هل يمكن إضافة عنصر جديد من هذا النوع؟ */
+  /** هل يمكن إضافة عُنصر جديد من هذا النوع؟ */
   function canAdd(kind: LimitKind): boolean {
     if (!data) return true;
     const limit = data.limits[kind];
