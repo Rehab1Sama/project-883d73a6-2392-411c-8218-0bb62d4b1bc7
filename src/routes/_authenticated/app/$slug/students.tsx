@@ -28,6 +28,16 @@ import { useTenantTheme } from "@/hooks/useTenantTheme";
 import type { StudentRow } from "@/lib/types";
 import { bulkImportStudents, type BulkImportStudentRowResult } from "@/lib/bulk-import-students.functions";
 import { createStudentManually } from "@/lib/create-student.functions";
+import {
+  buildCsv,
+  downloadCsv,
+  mapRows,
+  parseCsv,
+  toNumber,
+  STUDENT_ALIASES,
+  STUDENT_HEADERS,
+  STUDENT_SAMPLE,
+} from "@/lib/csv-import";
 
 export const Route = createFileRoute("/_authenticated/app/$slug/students")({
   head: () => ({
