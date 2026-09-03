@@ -9,7 +9,7 @@ const messageSchema = z.object({
 
 /**
  * المساعد الذكي داخل لوحة التحكم.
- * يجمع لمحة رقمية عن المقرأة (أو عن المنصة لمالكتها) ثم يجيب بالعربية عبر Gemini API مباشرة.
+ * يجمع لمحة رقمية عن المقرأة (أو عن المنصة لمالكتها) ثم يُجيب بالعربية عبر Gemini API مباشرة.
  */
 export const askAssistant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
