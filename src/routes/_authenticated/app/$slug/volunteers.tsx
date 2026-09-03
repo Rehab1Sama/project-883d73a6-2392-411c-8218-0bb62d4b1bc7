@@ -191,38 +191,20 @@ function VolunteersPage() {
   async function handleImport(file: File) {
     setImporting(true);
     try {
-      const ExcelJS = await import("exceljs");
-      const wb = new ExcelJS.Workbook();
-      await wb.xlsx.load(await file.arrayBuffer());
-      const sheet = wb.worksheets[0];
-      if (!sheet) throw new Error("الملف فارغ");
-      const rows: {
-        full_name: string;
-        email: string;
-        password: string;
-        role_label: string;
-        track_name: string | null;
-        circle_name: string | null;
-        age: number | null;
-        country: string | null;
-      }[] = [];
-      sheet.eachRow((row, index) => {
-        if (index === 1) return; // ترويسة
-        const cell = (i: number) => String(row.getCell(i).text ?? "").trim();
-        const full_name = cell(1);
-        if (!full_name) return;
-        const ageRaw = cell(7);
-        rows.push({
-          full_name,
-          email: cell(2),
-          password: cell(3),
-          role_label: cell(4),
-          track_name: cell(5) || null,
-          circle_name: cell(6) || null,
-          age: ageRaw ? Number(ageRaw) || null : null,
-          country: cell(8) || null,
-        });
-      });
+      // القراءة بأسماء الترويسة (عربية أو إنجليزية) لا بترتيب الأعمدة، وتقبل Excel و CSV.
+      const grid = await readSheetGrid(file);
+      const rows = mapRows(grid, VOLUNTEER_ALIASES)
+        .filter((r) => (r["full_name"] ?? "").trim())
+        .map((r) => ({
+          full_name: (r["full_name"] ?? "").trim(),
+          email: (r["email"] ?? "").trim(),
+          password: (r["password"] ?? "").trim(),
+          role_label: (r["role_label"] ?? "").trim(),
+          track_name: (r["track_name"] ?? "").trim() || null,
+          circle_name: (r["circle_name"] ?? "").trim() || null,
+          age: toNumber(r["age"] ?? ""),
+          country: (r["country"] ?? "").trim() || null,
+        }));
       if (rows.length === 0) throw new Error("لم نجد صفوفًا صالحة في الملف");
       const { results } = await importAccounts({ data: { slug: tenant!.slug, rows } });
       const created = results.filter((r) => r.status === "created").length;
