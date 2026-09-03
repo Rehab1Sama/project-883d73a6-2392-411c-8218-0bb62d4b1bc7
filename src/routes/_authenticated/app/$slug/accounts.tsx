@@ -361,6 +361,7 @@ function AccountsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-right">الاسم</TableHead>
+                  <TableHead className="text-right">المسار</TableHead>
                   <TableHead className="text-right">الحلقة</TableHead>
                   {canManage ? <TableHead className="text-right">الحالة</TableHead> : null}
                 </TableRow>
@@ -377,6 +378,7 @@ function AccountsPage() {
                         {s.full_name}
                       </Link>
                     </TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{s.track_name ?? "—"}</TableCell>
                     <TableCell className="text-xs text-muted-foreground">
                       {circleNames.get(s.circle_id ?? "") ?? "—"}
                     </TableCell>
