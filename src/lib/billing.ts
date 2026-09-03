@@ -23,7 +23,7 @@ export const INVOICE_STATUS_LABELS: Record<InvoiceStatus, string> = {
   paid: "مدفوعة",
   void: "ملغاة",
   refunded: "مستردة",
-  failed: "فاشلة",
+  failed: "فَاشلة",
 };
 
 /** نهاية الفترة التالية حسب نوع الدفع (الشراء الكامل بلا نهاية) */
